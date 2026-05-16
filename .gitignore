@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.eggs/
+*.egg-info/
+*.egg
+dist/
+build/
+*.log
+
+# Generated Qt resources
+src/central_logger/resources_rc.py
+
+# uv / poetry
+uv.lock.local
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.directory
+
+# OS
+.DS_Store
+Thumbs.db
+
+# App data
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Nuitka build artifacts
+*.build/
+*.dist/
+*.onefile-build/
+
+# Qaterial (optional; clone + local build — see README)
+vendor/Qaterial/
+vendor/qaterial-build/
+vendor/qaterial-install/

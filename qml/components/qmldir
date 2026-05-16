@@ -1,0 +1,10 @@
+module components
+RoundedSearchBar 1.0 RoundedSearchBar.qml
+StatusBadge 1.0 StatusBadge.qml
+StatusPill 1.0 StatusPill.qml
+AppSidebar 1.0 AppSidebar.qml
+AppTopBar 1.0 AppTopBar.qml
+LoggerCard 1.0 LoggerCard.qml
+SensorCard 1.0 SensorCard.qml
+AddLoggerDialog 1.0 AddLoggerDialog.qml
+LoggerDetailDialog 1.0 LoggerDetailDialog.qml

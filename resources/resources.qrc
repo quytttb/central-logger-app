@@ -1,0 +1,23 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file alias="qtquickcontrols2.conf">qtquickcontrols2.conf</file>
+    </qresource>
+    <qresource prefix="/qml">
+        <file alias="main.qml">../qml/main.qml</file>
+        <file alias="components/qmldir">../qml/components/qmldir</file>
+        <file alias="components/StatusBadge.qml">../qml/components/StatusBadge.qml</file>
+        <file alias="components/StatusPill.qml">../qml/components/StatusPill.qml</file>
+        <file alias="components/AppSidebar.qml">../qml/components/AppSidebar.qml</file>
+        <file alias="components/AppTopBar.qml">../qml/components/AppTopBar.qml</file>
+        <file alias="components/LoggerCard.qml">../qml/components/LoggerCard.qml</file>
+        <file alias="components/SensorCard.qml">../qml/components/SensorCard.qml</file>
+        <file alias="components/AddLoggerDialog.qml">../qml/components/AddLoggerDialog.qml</file>
+        <file alias="components/LoggerDetailDialog.qml">../qml/components/LoggerDetailDialog.qml</file>
+        <file alias="pages/qmldir">../qml/pages/qmldir</file>
+        <file alias="pages/DashboardPage.qml">../qml/pages/DashboardPage.qml</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file alias="logo.svg">images/4M Technologies Blue.svg</file>
+    </qresource>
+</RCC>
