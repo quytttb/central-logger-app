@@ -1,0 +1,13 @@
+module views
+DashboardView 1.0 dashboard/DashboardView.qml
+NetworkTrafficChart 1.0 dashboard/NetworkTrafficChart.qml
+RecentEventsList 1.0 dashboard/RecentEventsList.qml
+LoggerDetailView 1.0 loggerDetail/LoggerDetailView.qml
+LoggerOverviewGrid 1.0 loggerDetail/LoggerOverviewGrid.qml
+LoggerStatusSidebar 1.0 loggerDetail/LoggerStatusSidebar.qml
+SensorMonitoringTable 1.0 loggerDetail/SensorMonitoringTable.qml
+SensorTrendingChart 1.0 loggerDetail/SensorTrendingChart.qml
+LoggersView 1.0 loggers/LoggersView.qml
+LoggerTableRow 1.0 loggers/LoggerTableRow.qml
+ListHeaderCell 1.0 loggers/ListHeaderCell.qml
+SettingsView 1.0 settings/SettingsView.qml

@@ -1,0 +1,29 @@
+module components
+
+# common
+Badge 1.0 common/Badge.qml
+StatusBadge 1.0 common/StatusBadge.qml
+StatusPill 1.0 common/StatusPill.qml
+SettingsField 1.0 common/SettingsField.qml
+HoverHighlight 1.0 common/HoverHighlight.qml
+singleton SensorPalette 1.0 common/SensorPalette.qml
+
+# cards
+StatCard 1.0 cards/StatCard.qml
+
+# navigation
+AppSidebar 1.0 navigation/AppSidebar.qml
+AppTopBar 1.0 navigation/AppTopBar.qml
+
+# dialogs
+BaseDialog 1.0 dialogs/BaseDialog.qml
+AddLoggerDialog 1.0 dialogs/AddLoggerDialog.qml
+ConfirmDialog 1.0 dialogs/ConfirmDialog.qml
+EditConfigDialog 1.0 dialogs/EditConfigDialog.qml
+LoggerFormDialog 1.0 dialogs/LoggerFormDialog.qml
+
+# utils
+FrameResizeHandles 1.0 utils/FrameResizeHandles.qml
+
+# charts
+BaseChart 1.0 charts/BaseChart.qml

@@ -4,6 +4,8 @@ Contract (theo `docs/rest-config-contract-v1`):
     - Base URL mặc định: http://<host>:<port>/api/v1
     - GET  /health               (no auth)  -> {ok, revision, ...}
     - GET  /config               (Bearer)   -> {api_version, revision, config: {...}}
+    - GET  /readings             (Bearer)   -> live sensor values (DI/DO + analog fallback)
+    - GET  /reports/latest       (Bearer)   -> latest TXT report file
     - POST /config               (Bearer)   -> body: {api_version, request_id,
                                                      expected_revision, config: {...}}
                                               200 -> {ok, applied_revision, errors, ...}
@@ -32,13 +34,23 @@ class RestEndpoint:
     port: int = 8080
     token: str | None = None
     base_url_override: str | None = None  # vd. https://logger.local/api/v1
-    timeout_s: float = 5.0
+    timeout_s: float = 20.0
     verify_tls: bool = True
 
     def base_url(self) -> str:
         if self.base_url_override:
             return self.base_url_override.rstrip("/")
         return f"http://{self.host}:{self.port}/api/v1"
+
+
+@dataclass
+class ReportDownloadResult:
+    ok: bool
+    http_status: int
+    content: bytes = b""
+    filename: str = ""
+    message: str = ""
+    errors: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
@@ -150,6 +162,52 @@ class LoggerConfigClient:
     async def get_config(self) -> ConfigResponse:
         """GET /config — full snapshot."""
         return await self._request("GET", "/config")
+
+    async def get_readings(self) -> ConfigResponse:
+        """GET /readings — live values snapshot from edge monitor."""
+        return await self._request("GET", "/readings")
+
+    async def download_latest_report(self) -> ReportDownloadResult:
+        """GET /reports/latest — binary TXT file."""
+        url = f"{self.endpoint.base_url()}/reports/latest"
+        try:
+            async with httpx.AsyncClient(
+                timeout=self.endpoint.timeout_s,
+                verify=self.endpoint.verify_tls,
+            ) as cli:
+                resp = await cli.get(url, headers=self._headers(auth=True))
+        except httpx.HTTPError as exc:
+            log.warning("REST GET %s failed: %s", url, exc)
+            return ReportDownloadResult(
+                ok=False,
+                http_status=0,
+                message=str(exc),
+                errors=[{"field": "", "message": f"network: {exc}"}],
+            )
+        if resp.status_code == 404:
+            return ReportDownloadResult(
+                ok=False,
+                http_status=404,
+                message="No report file available",
+            )
+        if not resp.is_success:
+            return ReportDownloadResult(
+                ok=False,
+                http_status=resp.status_code,
+                message=resp.text[:200] if resp.text else f"HTTP {resp.status_code}",
+            )
+        filename = "report.txt"
+        cd = resp.headers.get("content-disposition", "")
+        if "filename=" in cd:
+            part = cd.split("filename=", 1)[1].strip().strip('"')
+            if part:
+                filename = part
+        return ReportDownloadResult(
+            ok=True,
+            http_status=resp.status_code,
+            content=resp.content,
+            filename=filename,
+        )
 
     async def apply_config(
         self,

@@ -3,19 +3,18 @@
     <qresource prefix="/">
         <file alias="qtquickcontrols2.conf">qtquickcontrols2.conf</file>
     </qresource>
-    <qresource prefix="/qml">
-        <file alias="main.qml">../qml/main.qml</file>
-        <file alias="components/qmldir">../qml/components/qmldir</file>
-        <file alias="components/StatusBadge.qml">../qml/components/StatusBadge.qml</file>
-        <file alias="components/StatusPill.qml">../qml/components/StatusPill.qml</file>
-        <file alias="components/AppSidebar.qml">../qml/components/AppSidebar.qml</file>
-        <file alias="components/AppTopBar.qml">../qml/components/AppTopBar.qml</file>
-        <file alias="components/LoggerCard.qml">../qml/components/LoggerCard.qml</file>
-        <file alias="components/SensorCard.qml">../qml/components/SensorCard.qml</file>
-        <file alias="components/AddLoggerDialog.qml">../qml/components/AddLoggerDialog.qml</file>
-        <file alias="components/LoggerDetailDialog.qml">../qml/components/LoggerDetailDialog.qml</file>
-        <file alias="pages/qmldir">../qml/pages/qmldir</file>
-        <file alias="pages/DashboardPage.qml">../qml/pages/DashboardPage.qml</file>
+    <qresource prefix="/ui">
+        <file alias="main.qml">../src/central_logger/ui/main.qml</file>
+        <file alias="qmldir">../src/central_logger/ui/qmldir</file>
+        <file alias="UiMotion.qml">../src/central_logger/ui/UiMotion.qml</file>
+        <file alias="components/qmldir">../src/central_logger/ui/components/qmldir</file>
+        <file alias="views/qmldir">../src/central_logger/ui/views/qmldir</file>
+    </qresource>
+    <qresource prefix="/fonts">
+        <file alias="Lato/Lato-Regular.ttf">fonts/Lato/Lato-Regular.ttf</file>
+        <file alias="Roboto/Roboto-Regular.ttf">fonts/Roboto/Roboto-Regular.ttf</file>
+        <file alias="Roboto/Roboto-Medium.ttf">fonts/Roboto/Roboto-Medium.ttf</file>
+        <file alias="RobotoMono/RobotoMono-Regular.ttf">fonts/RobotoMono/RobotoMono-Regular.ttf</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="logo.svg">images/4M Technologies Blue.svg</file>

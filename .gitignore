@@ -41,6 +41,9 @@ data/
 *.sqlite
 *.sqlite3
 
+# ZBar Windows binaries (stage locally; see resources/native/windows/README.md)
+resources/native/windows/*.dll
+
 # Nuitka build artifacts
 *.build/
 *.dist/

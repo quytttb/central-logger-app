@@ -25,14 +25,15 @@ central-logger-app/
 │   ├── services/           # ModbusManager (asyncio), QmlAsyncBridge
 │   ├── viewmodels/         # @QmlElement / @QmlSingleton
 │   ├── controllers/
-│   └── utils/
-├── qml/                    # QML (Qaterial + Qt Quick Controls)
-│   ├── main.qml
-│   ├── components/
-│   └── pages/
+│   ├── utils/
+│   └── ui/                 # QML (Qaterial + Qt Quick Controls)
+│       ├── main.qml
+│       ├── components/
+│       └── views/
 ├── resources/
 │   ├── resources.qrc
 │   ├── qtquickcontrols2.conf
+│   ├── fonts/              # Lato, Roboto, Roboto Mono (bundled app fonts)
 │   └── images/
 ├── tests/
 └── .github/workflows/ci.yml
@@ -58,6 +59,11 @@ QT_QPA_PLATFORM=offscreen pytest -q
 ```
 
 Gỡ lỗi Modbus / UI cập nhật trạng thái: chạy với `CENTRAL_LOGGER_DEBUG=1` để xem log (`central_logger.services`, v.v.). Nếu Data Logger chỉ listen IPv4, dùng host `127.0.0.1` thay vì `localhost`.
+
+**Pairing QR (API token):** Add/Edit Logger → **Scan QR…** (ảnh PNG/JPG từ data-logger). Schema: [`docs/provision-qr-v1.md`](docs/provision-qr-v1.md).
+
+- **Linux dev:** `sudo apt install libzbar0`
+- **Windows build:** copy `libzbar-64.dll` (+ `libiconv.dll`) vào [`resources/native/windows/`](resources/native/windows/README.md), rồi deploy — DLL được bundle cạnh `.exe` (`native/windows/`). Script: `scripts\stage_zbar_windows.ps1 -Source "C:\path\to\zbar\bin"`.
 
 > Nếu dùng `uv` (nhanh hơn): `uv sync --extra dev` rồi `uv run python -m central_logger.main`.
 
@@ -98,11 +104,17 @@ Nếu chưa build Qaterial, QML `import Qaterial` sẽ thất bại — cần bu
 python -m venv .venv
 .venv\Scripts\activate
 pip install -e ".[build]"
+
+:: QR scan: stage ZBar DLLs once (x64) — see resources\native\windows\README.md
+powershell -ExecutionPolicy Bypass -File scripts\stage_zbar_windows.ps1 -Source "C:\path\to\zbar\bin"
+
 pyside6-rcc resources\resources.qrc -o src\central_logger\resources_rc.py
 pyside6-deploy src\central_logger\main.py
 ```
 
-Tham khảo `pysidedeploy.spec` (tự sinh ở lần đầu) để loại bỏ QML plugins thừa (`excluded_qml_plugins = WebEngine, Quick3D, ...`).
+Sau build, thư mục deploy có `native\windows\libzbar-64.dll` — **không** cần operator cài apt/ZBar; chỉ chạy `.exe`.
+
+Tham khảo `pysidedeploy.spec` (`--include-data-dir=resources/native/windows=native/windows`) và loại bỏ QML plugins thừa (`excluded_qml_plugins = WebEngine, Quick3D, ...`).
 
 ## License
 

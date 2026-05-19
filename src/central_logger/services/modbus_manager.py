@@ -96,7 +96,7 @@ class ModbusManager:
         config = self._configs[logger_id]
         client = self._clients[logger_id]
         backoff = config.backoff_start_s
-        interval = max(config.poll_interval_ms / 1000.0, 0.05)
+        interval = max(float(config.poll_interval_s), 0.05)
 
         try:
             while not self._stopped.is_set():

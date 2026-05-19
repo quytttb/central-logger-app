@@ -37,6 +37,24 @@ def init_db() -> None:
     engine = get_engine()
     SQLModel.metadata.create_all(engine)
     _ensure_logger_info_columns(engine)
+    _migrate_poll_interval_seconds(engine)
+    _seed_app_settings()
+
+
+def _seed_app_settings() -> None:
+    """Đảm bảo bảng app_settings luôn có row id=1 với defaults."""
+    from central_logger.db.models import DEFAULT_SYSTEM_TIMEZONE, AppSettings
+
+    with Session(get_engine()) as session:
+        row = session.get(AppSettings, 1)
+        if row is None:
+            session.add(AppSettings(id=1))
+            session.commit()
+        elif row.system_timezone in ("", "UTC"):
+            # DB cũ seed UTC — nâng lên múi giờ VN cho chart và Settings.
+            row.system_timezone = DEFAULT_SYSTEM_TIMEZONE
+            session.add(row)
+            session.commit()
 
 
 # Lightweight migration: SQLite create_all không tự ALTER bảng đã tồn tại.
@@ -60,6 +78,31 @@ def _ensure_logger_info_columns(engine) -> None:
     with engine.begin() as conn:
         for col, ddl in missing.items():
             conn.execute(text(f"ALTER TABLE logger_info ADD COLUMN {col} {ddl}"))
+
+
+def _migrate_poll_interval_seconds(engine) -> None:
+    """Thêm poll_interval_s và migrate từ poll_interval_ms (legacy)."""
+    insp = inspect(engine)
+    if "logger_info" not in insp.get_table_names():
+        return
+    existing = {col["name"] for col in insp.get_columns("logger_info")}
+    if "poll_interval_s" in existing:
+        return
+    with engine.begin() as conn:
+        conn.execute(
+            text("ALTER TABLE logger_info ADD COLUMN poll_interval_s INTEGER NOT NULL DEFAULT 2")
+        )
+        if "poll_interval_ms" in existing:
+            conn.execute(
+                text(
+                    """
+                    UPDATE logger_info
+                    SET poll_interval_s = MAX(1, poll_interval_ms / 1000)
+                    """
+                )
+            )
+        else:
+            conn.execute(text("UPDATE logger_info SET poll_interval_s = 2 WHERE poll_interval_s < 1"))
 
 
 @contextmanager

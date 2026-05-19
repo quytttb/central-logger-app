@@ -53,7 +53,7 @@ async def test_get_config_uses_bearer(monkeypatch, endpoint):
             json={
                 "ok": True,
                 "revision": 7,
-                "config": {"poll_interval": 10, "logger_serial": "X1"},
+                "config": {"poll_interval": 10, "station_code": "TRAM-001"},
             },
         )
 

@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from enum import IntEnum
 
 from PySide6.QtCore import (
+    Property,
     QAbstractListModel,
     QByteArray,
     QModelIndex,
@@ -42,6 +43,7 @@ class LoggerItem:
     host: str
     port: int = 5020
     unit_id: int = 1
+    poll_interval_s: int = 2
     online: bool = False
     polling: bool = False
     rtu_connected: bool = False
@@ -49,6 +51,12 @@ class LoggerItem:
     sensor_count: int = 0
     last_update: str = ""
     last_error: str = ""
+    # Extended DB fields
+    enabled: bool = True
+    timeout_s: float = 2.0
+    note: str = ""
+    api_port: int = 8080
+    api_base_url: str = ""
 
     def as_role_value(self, role: int):
         mapping = {
@@ -134,6 +142,48 @@ class LoggerListModel(QAbstractListModel):
         self.endResetModel()
         self.countChanged.emit()
 
+    def update_connection(
+        self,
+        logger_id: int,
+        *,
+        name: str | None = None,
+        host: str | None = None,
+        port: int | None = None,
+        unit_id: int | None = None,
+        poll_interval_s: int | None = None,
+        enabled: bool | None = None,
+        timeout_s: float | None = None,
+        note: str | None = None,
+    ) -> None:
+        for row, item in enumerate(self._items):
+            if item.id != logger_id:
+                continue
+            changed_roles: list[int] = []
+            if name is not None and item.name != name:
+                item.name = name
+                changed_roles.append(int(LoggerRoles.NameRole))
+            if host is not None and item.host != host:
+                item.host = host
+                changed_roles.append(int(LoggerRoles.HostRole))
+            if port is not None and item.port != port:
+                item.port = port
+                changed_roles.append(int(LoggerRoles.PortRole))
+            if unit_id is not None and item.unit_id != unit_id:
+                item.unit_id = unit_id
+                changed_roles.append(int(LoggerRoles.UnitIdRole))
+            if poll_interval_s is not None and item.poll_interval_s != poll_interval_s:
+                item.poll_interval_s = poll_interval_s
+            if enabled is not None:
+                item.enabled = enabled
+            if timeout_s is not None:
+                item.timeout_s = timeout_s
+            if note is not None:
+                item.note = note or ""
+            if changed_roles:
+                idx = self.index(row, 0)
+                self.dataChanged.emit(idx, idx, changed_roles)
+            return
+
     def update_status(
         self,
         logger_id: int,
@@ -181,6 +231,13 @@ class LoggerListModel(QAbstractListModel):
     def count(self) -> int:
         return len(self._items)
 
+    # `Property` để QML có thể bind trực tiếp (`model.rowCountValue`) và tự
+    # re-evaluate khi `countChanged` emit. Slot `count()` ở trên KHÔNG reactive
+    # nên dùng property này cho binding (ví dụ: empty-state visible).
+    @Property(int, notify=countChanged)
+    def rowCountValue(self) -> int:
+        return len(self._items)
+
     @Slot(result=int)
     def onlineCount(self) -> int:
         return sum(1 for it in self._items if it.online)
@@ -199,6 +256,7 @@ class LoggerListModel(QAbstractListModel):
                 "host": item.host,
                 "port": item.port,
                 "unitId": item.unit_id,
+                "pollIntervalS": item.poll_interval_s,
                 "online": item.online,
                 "polling": item.polling,
                 "rtuConnected": item.rtu_connected,
@@ -206,5 +264,10 @@ class LoggerListModel(QAbstractListModel):
                 "sensorCount": item.sensor_count,
                 "lastUpdate": item.last_update,
                 "lastError": item.last_error,
+                "enabled": item.enabled,
+                "timeoutS": item.timeout_s,
+                "note": item.note,
+                "apiPort": item.api_port,
+                "apiBaseUrl": item.api_base_url,
             }
         return None

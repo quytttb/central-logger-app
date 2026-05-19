@@ -29,7 +29,7 @@ class LoggerConfig:
     host: str
     port: int = 5020
     unit_id: int = 1
-    poll_interval_ms: int = 2000
+    poll_interval_s: int = 2
     timeout_s: float = 2.0
     max_retries: int = 3
     backoff_start_s: float = 1.0
@@ -51,6 +51,8 @@ class LoggerModbusClient:
         self.config = config
         self._client: AsyncModbusTcpClient | None = None
         self._lock = asyncio.Lock()
+        # Dedupe log: chỉ in 1 dòng "connect failed" cho tới khi reconnect OK.
+        self._connect_failure_logged = False
 
     @property
     def connected(self) -> bool:
@@ -64,13 +66,42 @@ class LoggerModbusClient:
                 timeout=self.config.timeout_s,
             )
         if self._client.connected:
+            if self._connect_failure_logged:
+                log.info(
+                    "connect recovered for %s:%s",
+                    self.config.host,
+                    self.config.port,
+                )
+                self._connect_failure_logged = False
             return True
         try:
             await self._client.connect()
         except Exception as exc:  # pragma: no cover - network error
-            log.warning("connect failed for %s:%s: %s", self.config.host, self.config.port, exc)
+            if not self._connect_failure_logged:
+                log.warning(
+                    "connect failed for %s:%s: %s",
+                    self.config.host,
+                    self.config.port,
+                    exc,
+                )
+                self._connect_failure_logged = True
             return False
-        return bool(self._client.connected)
+        connected = bool(self._client.connected)
+        if connected and self._connect_failure_logged:
+            log.info(
+                "connect recovered for %s:%s",
+                self.config.host,
+                self.config.port,
+            )
+            self._connect_failure_logged = False
+        elif not connected and not self._connect_failure_logged:
+            log.warning(
+                "connect failed for %s:%s",
+                self.config.host,
+                self.config.port,
+            )
+            self._connect_failure_logged = True
+        return connected
 
     async def close(self) -> None:
         if self._client is not None:

@@ -48,6 +48,7 @@ def test_update_status_emits_data_changed(model, qtbot):
     model.add_logger(LoggerItem(id=1, name="A", host="h"))
     with qtbot.waitSignal(model.dataChanged, timeout=1000):
         model.update_status(1, online=True, polling=True, sensor_count=4)
+        model.update_connection(1, poll_interval_s=5)
 
     idx = model.index(0, 0)
     assert model.data(idx, int(LoggerRoles.OnlineRole)) is True

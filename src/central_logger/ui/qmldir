@@ -1,0 +1,2 @@
+module qml
+singleton UiMotion 1.0 UiMotion.qml

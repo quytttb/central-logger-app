@@ -4,7 +4,7 @@ from __future__ import annotations
 from sqlalchemy import inspect, text
 from sqlmodel import create_engine
 
-from central_logger.db.session import _ensure_logger_info_columns
+from central_logger.db.session import _ensure_logger_info_columns, _migrate_poll_interval_seconds
 
 
 def test_add_missing_columns_on_legacy_table(tmp_path):
@@ -37,3 +37,35 @@ def test_add_missing_columns_on_legacy_table(tmp_path):
     cols = {c["name"] for c in insp.get_columns("logger_info")}
     for required in ("api_base_url", "api_port", "api_token", "last_revision"):
         assert required in cols
+
+
+def test_migrate_poll_interval_seconds(tmp_path):
+    db_path = tmp_path / "legacy_poll.db"
+    engine = create_engine(f"sqlite:///{db_path}")
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE logger_info (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    host TEXT NOT NULL,
+                    port INTEGER NOT NULL DEFAULT 5020,
+                    unit_id INTEGER NOT NULL DEFAULT 1,
+                    poll_interval_ms INTEGER NOT NULL DEFAULT 4000,
+                    timeout_s REAL NOT NULL DEFAULT 2.0,
+                    enabled BOOLEAN NOT NULL DEFAULT 1
+                )
+                """
+            )
+        )
+        conn.execute(
+            text("INSERT INTO logger_info (id, name, host) VALUES (1, 'L', '127.0.0.1')")
+        )
+    _migrate_poll_interval_seconds(engine)
+    insp = inspect(engine)
+    cols = {c["name"] for c in insp.get_columns("logger_info")}
+    assert "poll_interval_s" in cols
+    with engine.connect() as conn:
+        row = conn.execute(text("SELECT poll_interval_s FROM logger_info WHERE id=1")).one()
+    assert row[0] == 4

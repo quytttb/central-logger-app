@@ -3,6 +3,7 @@ from central_logger.services.modbus_manager import ModbusManager, now_iso
 from central_logger.services.rest_config_client import (
     ConfigResponse,
     LoggerConfigClient,
+    ReportDownloadResult,
     RestEndpoint,
 )
 
@@ -15,4 +16,5 @@ __all__ = [
     "ConfigResponse",
     "LoggerConfigClient",
     "RestEndpoint",
+    "ReportDownloadResult",
 ]

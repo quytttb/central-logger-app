@@ -105,7 +105,7 @@ async def test_manager_invokes_callback(monkeypatch):
 
     manager = ModbusManager(on_snapshot=on_snap)
     manager.add_logger(
-        LoggerConfig(id=7, name="x", host="h", poll_interval_ms=50, timeout_s=0.5)
+        LoggerConfig(id=7, name="x", host="h", poll_interval_s=1, timeout_s=0.5)
     )
     manager.start()
     # đợi vài chu kỳ
