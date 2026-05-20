@@ -24,14 +24,14 @@ Rectangle {
 
     signal navigate(string view)
 
-    color: isDark ? "#09090b" : "#ffffff"
+    color: Colors.surface(isDark)
 
     // Right border
     Rectangle {
         anchors.right: parent.right
         width: 1
         height: parent.height
-        color: isDark ? "#27272a" : "#e4e4e7"
+        color: Colors.border(isDark)
     }
 
     ColumnLayout {
@@ -72,7 +72,7 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 width: parent.width
                 height: 1
-                color: sidebar.isDark ? "#27272a" : "#e4e4e7"
+                color: Colors.border(sidebar.isDark)
             }
 
             Item {
@@ -107,7 +107,7 @@ Rectangle {
 
                 Qaterial.LabelBody2 {
                     text: "Central"
-                    color: sidebar.isDark ? "#fafafa" : "#18181b"
+                    color: Colors.textPrimary(sidebar.isDark)
                     font.family: "Roboto"
                     font.pixelSize: 16
                     font.weight: Font.Bold
@@ -115,7 +115,7 @@ Rectangle {
                 }
                 Qaterial.LabelCaption {
                     text: "Logger"
-                    color: sidebar.isDark ? "#d4d4d8" : "#52525b"
+                    color: Colors.textBody(sidebar.isDark)
                     font.family: "Roboto"
                     font.pixelSize: 14
                     font.weight: Font.Medium
@@ -144,7 +144,7 @@ Rectangle {
                     text: "OVERVIEW"
                     opacity: sidebar.isOpen ? 1.0 : 0.0
                     visible: opacity > 0
-                    color: sidebar.isDark ? "#71717a" : "#a1a1aa"
+                    color: Colors.textMuted(sidebar.isDark)
                     font.family: "Roboto"
                     font.pixelSize: 11
                     font.weight: Font.DemiBold
@@ -176,7 +176,7 @@ Rectangle {
                     text: "EDGE NETWORK"
                     opacity: sidebar.isOpen ? 1.0 : 0.0
                     visible: opacity > 0
-                    color: sidebar.isDark ? "#71717a" : "#a1a1aa"
+                    color: Colors.textMuted(sidebar.isDark)
                     font.family: "Roboto"
                     font.pixelSize: 11
                     font.weight: Font.DemiBold
@@ -208,7 +208,7 @@ Rectangle {
                     text: "CONFIGURATION"
                     opacity: sidebar.isOpen ? 1.0 : 0.0
                     visible: opacity > 0
-                    color: sidebar.isDark ? "#71717a" : "#a1a1aa"
+                    color: Colors.textMuted(sidebar.isDark)
                     font.family: "Roboto"
                     font.pixelSize: 11
                     font.weight: Font.DemiBold
@@ -238,7 +238,7 @@ Rectangle {
         // ── Footer ──────────────────────────────────────────────────────────
         Qaterial.LabelCaption {
             text: "© 2026 4M Technologies"
-            color: sidebar.isDark ? "#52525b" : "#a1a1aa"
+            color: Colors.textMuted(sidebar.isDark)
             font.family: "Roboto"
             font.pixelSize: 11
             opacity: sidebar.isOpen ? 0.8 : 0.0
@@ -277,9 +277,7 @@ Rectangle {
         Rectangle {
             anchors.fill: parent
             radius: 6
-            color: navItem.isActive
-                ? (navItem.isDark ? "#2563eb" : "#eff6ff")
-                : "transparent"
+            color: navItem.isActive ? Colors.navActiveBg(navItem.isDark) : "transparent"
 
             HoverHighlight {
                 anchors.fill: parent
@@ -311,9 +309,7 @@ Rectangle {
                     anchors.centerIn: parent
                     icon: navItem.iconSource
                     size: 16
-                    color: navItem.isActive
-                        ? (navItem.isDark ? "#ffffff" : "#1d4ed8")
-                        : (navItem.isDark ? "#a1a1aa" : "#52525b")
+                    color: navItem.isActive ? Colors.navActiveFg(navItem.isDark) : Colors.textSecondary(navItem.isDark)
                 }
             }
 
@@ -321,9 +317,7 @@ Rectangle {
                 text: navItem.label
                 opacity: navItem.isOpen ? 1.0 : 0.0
                 visible: opacity > 0
-                color: navItem.isActive
-                    ? (navItem.isDark ? "#ffffff" : "#1d4ed8")
-                    : (navItem.isDark ? "#a1a1aa" : "#52525b")
+                color: navItem.isActive ? Colors.navActiveFg(navItem.isDark) : Colors.textSecondary(navItem.isDark)
                 font.family: "Roboto"
                 font.pixelSize: 14
                 font.weight: Font.Medium

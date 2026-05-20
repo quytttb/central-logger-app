@@ -38,6 +38,7 @@ def init_db() -> None:
     SQLModel.metadata.create_all(engine)
     _ensure_logger_info_columns(engine)
     _migrate_poll_interval_seconds(engine)
+    _ensure_sensor_reading_indexes(engine)
     _seed_app_settings()
 
 
@@ -103,6 +104,29 @@ def _migrate_poll_interval_seconds(engine) -> None:
             )
         else:
             conn.execute(text("UPDATE logger_info SET poll_interval_s = 2 WHERE poll_interval_s < 1"))
+
+
+def _ensure_sensor_reading_indexes(engine) -> None:
+    """Composite index for per-logger history; recorded_at for global chart scans."""
+    insp = inspect(engine)
+    if "sensor_reading" not in insp.get_table_names():
+        return
+    existing = {idx["name"] for idx in insp.get_indexes("sensor_reading")}
+    with engine.begin() as conn:
+        if "ix_sensor_reading_logger_recorded" not in existing:
+            conn.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_sensor_reading_logger_recorded "
+                    "ON sensor_reading (logger_id, recorded_at)"
+                )
+            )
+        if "ix_sensor_reading_recorded_at" not in existing:
+            conn.execute(
+                text(
+                    "CREATE INDEX IF NOT EXISTS ix_sensor_reading_recorded_at "
+                    "ON sensor_reading (recorded_at)"
+                )
+            )
 
 
 @contextmanager

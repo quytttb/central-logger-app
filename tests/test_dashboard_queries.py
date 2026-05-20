@@ -1,10 +1,11 @@
-"""Tests cho slot JSON `getRecentEvents` và `getIngestionChart24h`."""
+"""Tests cho chart JSON helpers và DashboardController chart slots."""
 from __future__ import annotations
 
 import json
 
 import pytest
 
+from central_logger.controllers import chart_queries
 from central_logger.controllers.dashboard_controller import DashboardController
 from central_logger.db import SensorReading, SystemEvent, get_session, init_db
 from central_logger.db import session as db_session
@@ -21,8 +22,7 @@ def fresh_db(tmp_path, monkeypatch):
 
 
 def test_recent_events_empty(qtbot, fresh_db):
-    ctrl = DashboardController()
-    assert json.loads(ctrl.getRecentEvents(10)) == []
+    assert json.loads(chart_queries.build_recent_events_json(10)) == []
 
 
 def test_recent_events_returns_inserted(qtbot, fresh_db):
@@ -37,8 +37,7 @@ def test_recent_events_returns_inserted(qtbot, fresh_db):
             )
         )
         session.commit()
-    ctrl = DashboardController()
-    events = json.loads(ctrl.getRecentEvents(10))
+    events = json.loads(chart_queries.build_recent_events_json(10))
     assert len(events) == 1
     assert events[0]["type"] == "Info"
     assert events[0]["logger"] == "Plant A"
@@ -57,20 +56,22 @@ def test_ingestion_chart_shape(qtbot, fresh_db):
         assert "Ho_Chi_Minh" in payload["timezone"] or "+07" in payload["timezone"]
 
 
-def test_sensor_trending_empty(qtbot, fresh_db):
-    ctrl = DashboardController()
-    payload = json.loads(ctrl.getSensorTrendingChart(1, 24))
+def test_sensor_trending_hourly_empty(qtbot, fresh_db):
+    from central_logger.controllers import chart_queries
+
+    payload = json.loads(chart_queries.build_sensor_trending_chart(1, 24))
     assert payload["labels"] and len(payload["labels"]) == 24
     assert payload["series"] == []
 
 
-def test_sensor_trending_aggregates(qtbot, fresh_db):
+def test_sensor_trending_hourly_aggregates(qtbot, fresh_db):
+    from central_logger.controllers import chart_queries
+
     with get_session() as session:
         for i in range(5):
             session.add(SensorReading(logger_id=1, sensor_id=7, value=float(i)))
         session.commit()
-    ctrl = DashboardController()
-    payload = json.loads(ctrl.getSensorTrendingChart(1, 24))
+    payload = json.loads(chart_queries.build_sensor_trending_chart(1, 24))
     assert any(s["sensorId"] == 7 for s in payload["series"])
 
 
@@ -79,11 +80,11 @@ def test_sensor_trending_poll_history(qtbot, fresh_db):
     sensors = [
         {"sensor_id": 3, "value": 10.0, "valid": True, "alarm": False, "stale": False},
     ]
-    ctrl._append_poll_history(1, sensors)
+    ctrl._sensors.append_poll_history(1, sensors)
     sensors[0]["value"] = 20.0
-    ctrl._append_poll_history(1, sensors)
+    ctrl._sensors.append_poll_history(1, sensors)
     sensors[0]["value"] = 30.0
-    ctrl._append_poll_history(1, sensors)
+    ctrl._sensors.append_poll_history(1, sensors)
 
     payload = json.loads(ctrl.getSensorTrendingPollChart(1, 120))
     assert payload["mode"] == "poll"

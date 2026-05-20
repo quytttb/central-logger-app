@@ -2,147 +2,111 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qaterial 1.0 as Qaterial
+import CentralLogger.Core 1.0
 
 import "../../"
 import "../../components/common"
+import "../../components/cards"
 
-Rectangle {
+PanelCard {
     id: root
-    property bool isDark: true
-    property var dashboardController: null
-    property var events: []
 
-    function refresh() {
-        if (!dashboardController) return
-        try {
-            var raw = dashboardController.getRecentEvents(20)
-            events = JSON.parse(raw || "[]")
-        } catch (e) {
-            console.warn("recent events parse error", e)
-            events = []
-        }
-    }
+    property var dashboardController: null
+    property RecentEventsModel eventsModel: null
+
+    title: "Recent Events"
+    clipBody: true
 
     Connections {
         target: root.dashboardController
         ignoreUnknownSignals: true
-        function onEventsChanged() { root.refresh() }
-    }
-    Component.onCompleted: refresh()
-
-    radius: 12
-    color: isDark ? "#09090b" : "#ffffff"
-
-    // Overlay border
-    Rectangle {
-        anchors.fill: parent
-        radius: 12
-        color: "transparent"
-        border.width: 1
-        border.color: root.isDark ? "#27272a" : "#e4e4e7"
-        z: 10
+        function onEventsChanged() {
+            if (root.eventsModel)
+                root.eventsModel.reload(20)
+        }
     }
 
-    ColumnLayout {
-        anchors.fill: parent
-        spacing: 0
+    Component.onCompleted: {
+        if (eventsModel)
+            eventsModel.reload(20)
+    }
 
-        // Header
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 56
+    ListView {
+        anchors.fill: parent
+        clip: true
+        model: root.eventsModel
+        delegate: Rectangle {
+            width: ListView.view.width
+            height: eventCol.implicitHeight + 24
             color: "transparent"
+
+            required property string type
+            required property string logger
+            required property string message
+            required property string level
+            required property string time
+
+            HoverHighlight {
+                hovered: evtMouse.containsMouse
+                isDark: root.isDark
+            }
 
             Rectangle {
                 anchors.bottom: parent.bottom
-                width: parent.width; height: 1
-                color: root.isDark ? "#27272a" : "#f4f4f5"
+                width: parent.width
+                height: 1
+                color: Colors.divider(root.isDark)
             }
 
-            Qaterial.LabelBody1 {
-                anchors.left: parent.left
-                anchors.leftMargin: 24
-                anchors.verticalCenter: parent.verticalCenter
-                text: "Recent Events"
-                color: root.isDark ? "#fafafa" : "#18181b"
-                font.family: "Inter"
-                font.pixelSize: 18
-                font.weight: Font.Medium
-            }
-        }
+            ColumnLayout {
+                id: eventCol
+                anchors.fill: parent
+                anchors.margins: 16
+                spacing: 6
 
-        // Events list
-        ListView {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            clip: true
-            model: root.events
-            delegate: Rectangle {
-                width: ListView.view.width
-                height: eventCol.implicitHeight + 24
-                color: "transparent"
-
-                HoverHighlight {
-                    hovered: evtMouse.containsMouse
-                    isDark: root.isDark
-                }
-
-                Rectangle {
-                    anchors.bottom: parent.bottom
-                    width: parent.width; height: 1
-                    color: root.isDark ? "#27272a" : "#f4f4f5"
-                }
-
-                ColumnLayout {
-                    id: eventCol
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 6
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Badge {
-                            text: modelData.type
-                            badgeColor: {
-                                if (modelData.level === "critical") return "red"
-                                if (modelData.level === "warning") return "amber"
-                                if (modelData.level === "error") return "zinc"
-                                if (modelData.level === "info") return "blue"
-                                return "zinc"
-                            }
-                            isDark: root.isDark
+                RowLayout {
+                    Layout.fillWidth: true
+                    Badge {
+                        text: type
+                        badgeColor: {
+                            if (level === "critical") return "red"
+                            if (level === "warning") return "amber"
+                            if (level === "error") return "zinc"
+                            if (level === "info") return "blue"
+                            return "zinc"
                         }
-                        Item { Layout.fillWidth: true }
-                        Qaterial.LabelCaption {
-                            text: modelData.time
-                            color: root.isDark ? "#71717a" : "#a1a1aa"
-                            font.family: "Inter"
-                            font.pixelSize: 12
-                        }
+                        isDark: root.isDark
                     }
-
-                    Qaterial.LabelBody2 {
-                        text: modelData.message
-                        color: root.isDark ? "#e4e4e7" : "#27272a"
-                        font.family: "Inter"
-                        font.pixelSize: 14
-                        font.weight: Font.Medium
-                        Layout.fillWidth: true
-                        wrapMode: Text.WordWrap
-                    }
+                    Item { Layout.fillWidth: true }
                     Qaterial.LabelCaption {
-                        text: modelData.logger
-                        color: root.isDark ? "#a1a1aa" : "#71717a"
+                        text: time
+                        color: Colors.textMuted(root.isDark)
                         font.family: "Inter"
                         font.pixelSize: 12
                     }
                 }
 
-                MouseArea {
-                    id: evtMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
+                Qaterial.LabelBody2 {
+                    text: message
+                    color: Colors.textBody(root.isDark)
+                    font.family: "Inter"
+                    font.pixelSize: 14
+                    font.weight: Font.Medium
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
                 }
+                Qaterial.LabelCaption {
+                    text: logger
+                    color: Colors.textSecondary(root.isDark)
+                    font.family: "Inter"
+                    font.pixelSize: 12
+                }
+            }
+
+            MouseArea {
+                id: evtMouse
+                anchors.fill: parent
+                hoverEnabled: true
             }
         }
     }

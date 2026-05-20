@@ -15,7 +15,8 @@ Bạn đang ở thư mục chứa logic cốt lõi (Backend) của dự án `cen
 
 3. **`controllers/` & `viewmodels/` (Presentation Layer):**
    - Cầu nối giữa giao diện (QML) và tầng Service/Database.
-   - Bắt buộc kế thừa `QObject`.
+   - Bắt buộc kế thừa `QObject` cho type đăng ký QML (`@QmlElement`).
+   - `DashboardController` là facade QML duy nhất; logic nặng nằm ở plain Python helpers cùng thư mục (`event_journal`, `sensor_state`, `rest_coordinator`, `modbus_bridge`, `logger_ops`, `chart_queries`) — không thêm `@QmlElement` mới trừ khi có contract UI mới.
    - Phải định nghĩa các `Property` (kèm setter/getter và `NOTIFY` signal) để QML có thể bind vào.
    - Các `Slot` dùng để nhận lệnh (click button, input text) từ QML.
 

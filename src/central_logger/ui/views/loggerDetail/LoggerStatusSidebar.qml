@@ -4,10 +4,12 @@ import QtQuick.Dialogs
 import QtQuick.Layouts
 import Qaterial 1.0 as Qaterial
 
-Rectangle {
+import "../../"
+import "../../components/cards"
+
+PanelCard {
     id: root
 
-    property bool isDark: true
     property var detail: ({})
     property var dashboardController: null
     property int loggerId: -1
@@ -16,17 +18,9 @@ Rectangle {
         && dashboardController !== null
         && loggerId >= 0
 
-    radius: 12
-    color: isDark ? "#09090b" : "#ffffff"
-
-    Rectangle {
-        anchors.fill: parent
-        radius: 12
-        color: "transparent"
-        border.width: 1
-        border.color: root.isDark ? "#27272a" : "#e4e4e7"
-        z: 10
-    }
+    showHeader: false
+    bodyMargins: 24
+    implicitHeight: 520
 
     FileDialog {
         id: reportSaveDialog
@@ -43,12 +37,11 @@ Rectangle {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 24
         spacing: 0
 
         Qaterial.LabelBody1 {
             text: "Status"
-            color: root.isDark ? "#fafafa" : "#18181b"
+            color: Colors.textPrimary(root.isDark)
             font.family: "Roboto"
             font.pixelSize: 18
             font.weight: Font.Medium
@@ -74,12 +67,12 @@ Rectangle {
         }
 
         Item { Layout.preferredHeight: 24 }
-        Rectangle { Layout.fillWidth: true; height: 1; color: root.isDark ? "#27272a" : "#f4f4f5" }
+        Rectangle { Layout.fillWidth: true; height: 1; color: Colors.divider(root.isDark) }
         Item { Layout.preferredHeight: 24 }
 
         Qaterial.LabelBody1 {
             text: "Hardware Health"
-            color: root.isDark ? "#fafafa" : "#18181b"
+            color: Colors.textPrimary(root.isDark)
             font.family: "Roboto"
             font.pixelSize: 18
             font.weight: Font.Medium
@@ -99,7 +92,7 @@ Rectangle {
         }
 
         Item { Layout.preferredHeight: 24 }
-        Rectangle { Layout.fillWidth: true; height: 1; color: root.isDark ? "#27272a" : "#f4f4f5" }
+        Rectangle { Layout.fillWidth: true; height: 1; color: Colors.divider(root.isDark) }
         Item { Layout.preferredHeight: 24 }
 
         Rectangle {
@@ -108,12 +101,12 @@ Rectangle {
             radius: 6
             opacity: root.canDownloadReport ? 1.0 : 0.45
             color: dlMouse.containsMouse && root.canDownloadReport
-                ? (root.isDark ? "#27272a" : "#e4e4e7")
-                : (root.isDark ? "#18181b" : "#f4f4f5")
+                ? Colors.buttonSecondaryHover(root.isDark)
+                : Colors.buttonSecondary(root.isDark)
             Qaterial.LabelBody2 {
                 anchors.centerIn: parent
                 text: "Download Report"
-                color: root.isDark ? "#fafafa" : "#18181b"
+                color: Colors.textPrimary(root.isDark)
                 font.family: "Roboto"
                 font.pixelSize: 14
                 font.weight: Font.Medium
@@ -134,6 +127,4 @@ Rectangle {
 
         Item { Layout.fillHeight: true }
     }
-
-    implicitHeight: 520
 }

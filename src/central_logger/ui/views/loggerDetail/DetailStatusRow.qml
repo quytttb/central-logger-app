@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Qaterial 1.0 as Qaterial
 
+import "../../"
 import "../../components/common"
 
 RowLayout {
@@ -16,7 +17,7 @@ RowLayout {
     Qaterial.LabelBody2 {
         text: parent.label
         Layout.fillWidth: true
-        color: parent.isDark ? "#a1a1aa" : "#71717a"
+        color: Colors.textSecondary(parent.isDark)
         font.family: "Roboto"
         font.pixelSize: 14
     }

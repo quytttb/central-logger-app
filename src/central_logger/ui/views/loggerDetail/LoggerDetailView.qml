@@ -6,6 +6,7 @@ import Qaterial 1.0 as Qaterial
 import "../../"
 import "../../components/common"
 import "../../components/dialogs"
+import "../../logic/LoggerDetailLogic.js" as DetailLogic
 
 /*
  * Logger Detail page — Shadcn style.
@@ -55,113 +56,32 @@ Item {
     })
 
     function _findModelRow() {
-        if (!loggersModel) return null
-        for (var i = 0; i < loggersModel.count(); ++i) {
-            var it = loggersModel.itemAt(i)
-            if (it && it.loggerId === loggerId) return it
-        }
-        return null
+        return DetailLogic.findModelRow(loggersModel, loggerId)
     }
 
     function _rebuildDetail() {
-        var row = _findModelRow()
-        if (!row) {
-            detail = Object.assign({}, detail, { loggerId: loggerId, loggerName: "Logger #" + loggerId })
-            return
-        }
-        var sensors = detail.sensorList || []
-        detail = {
-            loggerId: row.loggerId,
-            loggerName: row.name,
-            host: row.host,
-            port: row.port,
-            unitId: row.unitId,
-            pollIntervalS: row.pollIntervalS !== undefined ? row.pollIntervalS : 2,
-            timeoutS: row.timeoutS !== undefined ? row.timeoutS : 2.0,
-            enabled: row.enabled !== undefined ? row.enabled : true,
-            note: row.note || "",
-            apiPort: row.apiPort !== undefined ? row.apiPort : 8080,
-            apiBaseUrl: row.apiBaseUrl || "",
-            sensorCount: row.sensorCount,
-            online: row.online,
-            polling: row.polling,
-            rtuConnected: row.rtuConnected,
-            anyAlarm: row.anyAlarm,
-            currentRevision: detail.currentRevision !== undefined ? detail.currentRevision : -1,
-            lastRevision: detail.lastRevision !== undefined ? detail.lastRevision : -1,
-            statusText: row.lastError || (row.online ? "Online" : "Offline"),
-            sensorList: sensors,
-            configForm: detail.configForm,
-            cloudForm: detail.cloudForm,
-            rawConfig: detail.rawConfig
-        }
+        detail = DetailLogic.rebuildDetail(detail, _findModelRow(), loggerId)
     }
 
     function _applySensorsPayload(payload) {
-        var list = []
-        for (var i = 0; i < payload.sensors.length; ++i) {
-            var s = payload.sensors[i]
-            var st = s.sensor_type || ""
-            var displayName = (s.name && s.name.length > 0)
-                ? s.name
-                : (st ? (st + " #" + s.sensor_id) : ("Sensor " + s.sensor_id))
-            list.push({
-                sensor_id: s.sensor_id,
-                name: displayName,
-                type: displayName,
-                sensor_type: st,
-                unit: s.unit || "",
-                active: s.active !== undefined ? !!s.active : true,
-                timestamp: payload.iso ? payload.iso.substring(11, 19) : "",
-                value: s.value,
-                valid: s.valid,
-                alarm: s.alarm,
-                stale: s.stale,
-                display_status: s.display_status || "",
-                alarm_type: s.alarm_type || "",
-                rest_status: s.rest_status || ""
-            })
-        }
-        detail = Object.assign({}, detail, {
-            sensorList: list,
-            sensorCount: list.length,
-            polling: payload.polling,
-            rtuConnected: payload.rtu_connected,
-            anyAlarm: payload.any_alarm
-        })
+        detail = DetailLogic.applySensorsPayload(detail, payload)
     }
 
     function _hydrateLatest() {
         if (!dashboardController || loggerId < 0) return
         var json = dashboardController.latestReadings(loggerId)
         if (!json) return
-        try {
-            var payload = JSON.parse(json)
-            if (payload && payload.sensors) _applySensorsPayload(payload)
-        } catch (e) {
-            console.warn("latestReadings parse error", e)
-        }
+        var payload = DetailLogic.parseJsonSafe(json, null)
+        if (payload && payload.sensors) _applySensorsPayload(payload)
     }
 
     function _hydrateDetailFromDb() {
         if (!dashboardController || loggerId < 0) return
-        try {
-            var db = JSON.parse(dashboardController.getLoggerFormData(loggerId) || "{}")
-            if (!db.loggerId) return
-            detail = Object.assign({}, detail, {
-                timeoutS: db.timeoutS !== undefined ? db.timeoutS : detail.timeoutS,
-                note: db.note !== undefined ? db.note : detail.note,
-                apiPort: db.apiPort !== undefined ? db.apiPort : detail.apiPort,
-                apiBaseUrl: db.apiBaseUrl !== undefined ? db.apiBaseUrl : detail.apiBaseUrl,
-                lastRevision: db.lastRevision !== undefined ? db.lastRevision : -1,
-                cloudForm: Object.assign({}, detail.cloudForm || {}, {
-                    apiToken: db.apiToken !== undefined ? db.apiToken : (detail.cloudForm ? detail.cloudForm.apiToken : ""),
-                    apiPort: db.apiPort !== undefined ? db.apiPort : (detail.cloudForm ? detail.cloudForm.apiPort : 8080)
-                })
-            })
-        } catch (e) {
-            console.warn("getLoggerFormData parse error", e)
-        }
+        var db = DetailLogic.parseJsonSafe(
+            dashboardController.getLoggerFormData(loggerId),
+            {}
+        )
+        detail = DetailLogic.hydrateDetailFromDb(detail, db)
     }
 
     function _openEditDialog() {
@@ -169,16 +89,12 @@ Item {
         _hydrateDetailFromDb()
         if (dashboardController && loggerId >= 0)
             dashboardController.fetchConfig(loggerId)
-        editDialog.loadFromDetail(detail)
+        editDialog.loadFromDetail(view.detail)
         editDialog.open()
     }
 
     function _effectiveConfigRevision() {
-        if (detail.currentRevision !== undefined && detail.currentRevision >= 0)
-            return detail.currentRevision
-        if (detail.lastRevision !== undefined && detail.lastRevision >= 0)
-            return detail.lastRevision
-        return -1
+        return DetailLogic.effectiveConfigRevision(detail)
     }
 
     Timer {
@@ -193,7 +109,7 @@ Item {
         running: view.loggerId >= 0 && view.dashboardController !== null
         onTriggered: {
             if (view.dashboardController && view.loggerId >= 0)
-                view.dashboardController.fetchReadings(view.loggerId)
+                view.dashboardController.fetchReadingsIfStale(view.loggerId)
         }
     }
 
@@ -217,12 +133,8 @@ Item {
         ignoreUnknownSignals: true
         function onSensorsUpdated(id, jsonStr) {
             if (id !== view.loggerId) return
-            try {
-                var payload = JSON.parse(jsonStr)
-                view._applySensorsPayload(payload)
-            } catch (e) {
-                console.warn("sensorsUpdated parse error", e)
-            }
+            var payload = DetailLogic.parseJsonSafe(jsonStr, null)
+            if (payload) view._applySensorsPayload(payload)
         }
         function onSnapshotApplied(id, ok, info) {
             if (id === view.loggerId) view._rebuildDetail()
@@ -230,52 +142,27 @@ Item {
         function onConfigFetched(id, ok, payloadJson) {
             if (id !== view.loggerId) return
             if (!ok) {
-                try {
-                    var errP = JSON.parse(payloadJson)
-                    var msg = (errP.errors && errP.errors.length > 0)
-                        ? errP.errors[0].message
-                        : (errP.message || "Không tải được danh sách cảm biến (REST)")
-                    view.detail = Object.assign({}, view.detail, { catalogError: msg })
-                } catch (e) {
-                    view.detail = Object.assign({}, view.detail, {
-                        catalogError: "Không tải được danh sách cảm biến (REST)"
-                    })
+                var failMsg = DetailLogic.configFetchedErrorMessage(
+                    payloadJson,
+                    "Could not load sensor catalog (REST)"
+                )
+                view.detail = Object.assign({}, view.detail, { catalogError: failMsg })
+                if (editDialog.opened) {
+                    editDialog.configLoaded = false
+                    editDialog.setProbeError(failMsg)
                 }
                 return
             }
-            try {
-                var p = JSON.parse(payloadJson)
-                var cfg = p.config || {}
-                view.detail = Object.assign({}, view.detail, {
-                    catalogError: "",
-                    currentRevision: p.revision !== null && p.revision !== undefined ? p.revision : -1,
-                    lastRevision: p.revision !== null && p.revision !== undefined ? p.revision : view.detail.lastRevision,
-                    configForm: {
-                        station_code: cfg.station_code || "—",
-                        station_name: cfg.station_name || "",
-                        poll_interval: cfg.poll_interval || 0,
-                        modbus_tcp_bind: cfg.modbus_tcp_bind || "",
-                        modbus_tcp_enabled: !!cfg.modbus_tcp_enabled,
-                        modbus_tcp_unit_id: cfg.modbus_tcp_unit_id !== undefined
-                            ? cfg.modbus_tcp_unit_id
-                            : 1
-                    },
-                    cloudForm: {
-                        apiToken: p.api_token !== undefined ? p.api_token : (view.detail.cloudForm ? view.detail.cloudForm.apiToken : ""),
-                        apiPort: p.api_port !== undefined ? p.api_port : (view.detail.cloudForm ? view.detail.cloudForm.apiPort : 8080)
-                    },
-                    apiPort: p.api_port !== undefined ? p.api_port : view.detail.apiPort,
-                    apiBaseUrl: p.api_base_url !== undefined ? p.api_base_url : view.detail.apiBaseUrl,
-                    rawConfig: cfg
-                })
-                if (editDialog.opened)
-                    editDialog.loadFromDetail(view.detail)
-                if (view.dashboardController) {
-                    view.dashboardController.refreshSensorList(view.loggerId)
-                    view.dashboardController.fetchReadings(view.loggerId)
-                }
-            } catch (e) {
-                console.warn("configFetched parse error", e)
+            var merged = DetailLogic.mergeConfigFetched(view.detail, payloadJson)
+            view.detail = merged.detail
+            if (editDialog.opened) {
+                editDialog.loadFromDetail(view.detail)
+                editDialog.configLoaded = true
+                editDialog.setProbeSuccess()
+            }
+            if (view.dashboardController) {
+                view.dashboardController.refreshSensorList(view.loggerId)
+                view.dashboardController.fetchReadings(view.loggerId)
             }
         }
         function onReportDownloaded(id, ok, message) {
@@ -306,96 +193,13 @@ Item {
             width: parent.width
             spacing: 0
 
-            // ── Sticky Header ────────────────────────────────────────────────
-            Rectangle {
+            LoggerDetailHeader {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 72
-                color: view.isDark ? Qt.rgba(0.035,0.035,0.043,0.9) : Qt.rgba(0.98,0.98,0.98,0.9)
-
-                Rectangle {
-                    anchors.bottom: parent.bottom
-                    width: parent.width; height: 1
-                    color: view.isDark ? Qt.rgba(1,1,1,0.05) : Qt.rgba(0,0,0,0.06)
-                }
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: 24; anchors.rightMargin: 24
-                    spacing: 16
-
-                    // Back button
-                    Rectangle {
-                        width: 36; height: 36; radius: 6
-                        color: "transparent"
-                        HoverHighlight {
-                            anchors.fill: parent
-                            cornerRadius: 6
-                            hovered: backMouse.containsMouse
-                            isDark: view.isDark
-                        }
-                        Qaterial.Icon { anchors.centerIn: parent; icon: Qaterial.Icons.arrowLeft; size: 20; color: view.isDark ? "#a1a1aa" : "#52525b" }
-                        MouseArea { id: backMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: view.goBack() }
-                    }
-
-                    // Title
-                    ColumnLayout {
-                        Layout.fillWidth: true; spacing: 2
-                        Qaterial.LabelHeadline5 {
-                            text: detail.loggerName
-                            color: view.isDark ? "#fafafa" : "#18181b"
-                            font.family: "Inter"; font.pixelSize: 24; font.weight: Font.Bold
-                        }
-                        Qaterial.LabelBody2 {
-                            text: detail.host + ":" + detail.port
-                            color: view.isDark ? "#a1a1aa" : "#71717a"
-                            font.family: "Inter"; font.pixelSize: 14
-                        }
-                    }
-
-                    Item { Layout.fillWidth: true }
-
-                    // Edit button
-                    Rectangle {
-                        width: 36; height: 36; radius: 6
-                        color: "transparent"
-                        HoverHighlight {
-                            anchors.fill: parent
-                            cornerRadius: 6
-                            hovered: editMouse.containsMouse
-                            isDark: view.isDark
-                        }
-                        Qaterial.Icon { anchors.centerIn: parent; icon: Qaterial.Icons.pencil; size: 20; color: view.isDark ? "#a1a1aa" : "#52525b" }
-                        MouseArea {
-                            id: editMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: _openEditDialog()
-                        }
-                        ToolTip.visible: editMouse.containsMouse; ToolTip.text: "Edit Logger"
-                    }
-
-                    // Delete button
-                    Rectangle {
-                        width: 36; height: 36; radius: 6
-                        color: "transparent"
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 6
-                            color: view.isDark ? "#450505" : "#fef2f2"
-                            opacity: delMouse.containsMouse ? 1.0 : 0.0
-                            Behavior on opacity {
-                                NumberAnimation {
-                                    duration: UiMotion.durationFast
-                                    easing.type: UiMotion.easingOut
-                                }
-                            }
-                        }
-                        Qaterial.Icon { anchors.centerIn: parent; icon: Qaterial.Icons.trashCan; size: 20; color: delMouse.containsMouse ? "#ef4444" : (view.isDark ? "#a1a1aa" : "#52525b") }
-                        MouseArea { id: delMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: deleteDialog.open() }
-                        ToolTip.visible: delMouse.containsMouse; ToolTip.text: "Delete Logger"
-                    }
-                }
+                isDark: view.isDark
+                detail: view.detail
+                onGoBack: view.goBack()
+                onEditClicked: _openEditDialog()
+                onDeleteClicked: deleteDialog.open()
             }
 
             // ── Overview + 3-column grid ─────────────────────────────────────
@@ -423,7 +227,7 @@ Item {
                     LoggerStatusSidebar {
                         Layout.preferredWidth: 7
                         Layout.fillWidth: true
-                        Layout.fillHeight: true
+                        Layout.minimumHeight: 520
                         isDark: view.isDark
                         detail: view.detail
                         loggerId: view.loggerId
@@ -434,7 +238,6 @@ Item {
                     SensorMonitoringTable {
                         Layout.preferredWidth: 10
                         Layout.fillWidth: true
-                        Layout.fillHeight: true
                         Layout.minimumHeight: 520
                         isDark: view.isDark
                         detail: view.detail
@@ -445,7 +248,6 @@ Item {
                         id: trendChart
                         Layout.preferredWidth: 10
                         Layout.fillWidth: true
-                        Layout.fillHeight: true
                         Layout.minimumHeight: 520
                         isDark: view.isDark
                         loggerId: view.loggerId
@@ -520,18 +322,12 @@ Item {
         ignoreUnknownSignals: true
         function onConfigApplied(id, ok, payloadJson) {
             if (id !== view.loggerId) return
-            try {
-                var p = JSON.parse(payloadJson)
-                if (ok) {
-                    view.detail = Object.assign({}, view.detail, {
-                        currentRevision: p.applied_revision !== null && p.applied_revision !== undefined ? p.applied_revision : view.detail.currentRevision
-                    })
-                    if (view.dashboardController) view.dashboardController.fetchConfig(view.loggerId)
-                } else {
-                    console.warn("applyConfig failed:", p.message || p.errors)
-                }
-            } catch (e) {
-                console.warn("configApplied parse error", e)
+            if (ok) {
+                view.detail = DetailLogic.mergeConfigApplied(view.detail, payloadJson)
+                if (view.dashboardController) view.dashboardController.fetchConfig(view.loggerId)
+            } else {
+                var p = DetailLogic.parseJsonSafe(payloadJson, {})
+                console.warn("applyConfig failed:", p.message || p.errors)
             }
         }
     }

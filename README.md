@@ -33,8 +33,14 @@ central-logger-app/
 ├── resources/
 │   ├── resources.qrc
 │   ├── qtquickcontrols2.conf
-│   ├── fonts/              # Lato, Roboto, Roboto Mono (bundled app fonts)
+│   ├── fonts/              # Roboto, Roboto Mono (bundled app fonts)
 │   └── images/
+├── scripts/
+│   ├── build_deb.sh          # .deb từ thư mục deploy
+│   ├── build_msi.ps1         # .msi (Windows, cần WiX)
+│   └── stage_zbar_windows.ps1
+├── packaging/windows/        # WiX Product.wxs
+├── docs/perf-baseline.md
 ├── tests/
 └── .github/workflows/ci.yml
 ```
@@ -114,7 +120,68 @@ pyside6-deploy src\central_logger\main.py
 
 Sau build, thư mục deploy có `native\windows\libzbar-64.dll` — **không** cần operator cài apt/ZBar; chỉ chạy `.exe`.
 
-Tham khảo `pysidedeploy.spec` (`--include-data-dir=resources/native/windows=native/windows`) và loại bỏ QML plugins thừa (`excluded_qml_plugins = WebEngine, Quick3D, ...`).
+Tham khảo `pysidedeploy.spec` (`--include-data-dir=resources/native/windows=native/windows`, `--nofollow-import-to=pytest,tests`) và loại bỏ QML plugins thừa (`excluded_qml_plugins = WebEngine, Quick3D, ...`).
+
+**Build nhỏ hơn (không QR):** bỏ qua `stage_zbar_windows.ps1` và không copy `resources/native/windows/`; QR scan trong Add Logger sẽ báo lỗi thiếu thư viện — phù hợp môi trường không cần provisioning qua ảnh.
+
+## Phát hành (Release packages)
+
+| Nền tảng | File phát hành | Cài đặt |
+|----------|----------------|---------|
+| Ubuntu | `dist/central-logger-app_<ver>_amd64.deb` | `sudo apt install ./...deb` |
+| Windows | `dist/CentralLogger-<ver>-win64.msi` | double-click hoặc `msiexec /i` |
+| Windows (dev) | thư mục deploy + `CentralLogger.exe` | portable, không installer |
+
+### MSI và `.exe` — khác nhau thế nào?
+
+- **`.exe` (portable):** Nuitka / `pyside6-deploy` tạo `CentralLogger.exe` cùng thư mục DLL/Qt — chạy trực tiếp hoặc copy folder.
+- **`.msi`:** Gói **cài đặt** Windows Installer — copy vào `Program Files`, shortcut, gỡ qua Settings. MSI **không thay** `.exe`; nó **bọc** cùng thư mục deploy.
+- **MSIX** (tương lai): định dạng Store-style, ký số bắt buộc — chưa dùng trong repo này.
+
+### Đóng gói Ubuntu (`.deb`)
+
+Prerequisite: thư mục deploy sau `pyside6-deploy`, và trên máy cài `libzbar0` (runtime, không bundle như Windows).
+
+```bash
+# Cách 1 (khuyến nghị khi Nuitka/Py3.14 lỗi patchelf): venv deploy + .deb
+./scripts/build.sh deb
+# hoặc tách bước:
+# ./scripts/build_deploy_venv.sh && ./scripts/build_deb.sh deploy
+
+# Cách 2: Nuitka / pyside6-deploy (nhỏ hơn; cần Python 3.13 + patchelf hệ thống)
+pyside6-rcc resources/resources.qrc -o src/central_logger/resources_rc.py
+pyside6-deploy src/central_logger/main.py
+./scripts/build_deb.sh deploy
+
+sudo apt install ./dist/central-logger-app_*_amd64.deb
+```
+
+App cài tại `/opt/central-logger/`, lệnh `central-logger`, shortcut trong menu ứng dụng.
+
+### Đóng gói Windows (`.msi`)
+
+1. Build portable như mục **Triển khai Windows** (`pyside6-deploy` → thư mục có `CentralLogger.exe`).
+2. Cài [WiX Toolset](https://wixtoolset.org/) (`heat.exe`, `candle.exe`, `light.exe` trên PATH).
+3. Chạy:
+
+```powershell
+.\scripts\build_msi.ps1 -DeployDir deploy
+```
+
+Output: `dist\CentralLogger-<version>-win64.msi`.
+
+### Kiểm tra sau cài (smoke test)
+
+- App mở, đổi theme light/dark
+- Thêm/sửa logger, mở Logger Detail
+- Modbus poll (online/offline)
+- Windows full build: quét QR trong Add Logger
+
+### Tăng version
+
+Sửa `version` trong `pyproject.toml`, rồi build lại `.deb` / `.msi` (script đọc version từ đó hoặc tham số `-Version` trên MSI).
+
+Chi tiết đo hiệu năng / LOC: [`docs/perf-baseline.md`](docs/perf-baseline.md).
 
 ## License
 

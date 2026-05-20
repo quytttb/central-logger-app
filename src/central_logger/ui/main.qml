@@ -47,6 +47,7 @@ Qaterial.ApplicationWindow {
     }
 
     LoggerListModel { id: loggersModel }
+    RecentEventsModel { id: recentEventsModel }
 
     DashboardController {
         id: dashboardController
@@ -161,12 +162,13 @@ Qaterial.ApplicationWindow {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                color: window.isDark ? "#09090b" : "#fafafa"
+                color: Colors.surfaceMuted(window.isDark)
 
                 DashboardView {
                     anchors.fill: parent
                     isDark: window.isDark
                     dashboardController: window.dashboardController
+                    recentEventsModel: recentEventsModel
                     opacity: window._viewOpacity("dashboard")
                     visible: opacity > 0
                     enabled: visible

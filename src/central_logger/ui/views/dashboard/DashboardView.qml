@@ -6,6 +6,7 @@ import CentralLogger.Core 1.0
 
 import "../../"
 import "../../components/cards"
+import "../../components/common"
 
 /*
  * Dashboard overview page — Shadcn style.
@@ -16,6 +17,7 @@ Item {
 
     property bool isDark: Qaterial.Style.theme === Qaterial.Style.Theme.Dark
     property var dashboardController: null
+    property var recentEventsModel: null
 
     readonly property int gridGap: 24
     readonly property int gridMargin: 32
@@ -40,25 +42,14 @@ Item {
 
             Item { Layout.preferredHeight: 8 }
 
-            ColumnLayout {
+            PageHeader {
                 Layout.fillWidth: true
                 Layout.leftMargin: gridMargin
                 Layout.rightMargin: gridMargin
-                spacing: 4
-
-                Qaterial.LabelHeadline5 {
-                    text: "System Overview"
-                    color: view.isDark ? "#fafafa" : "#18181b"
-                    font.family: "Roboto"
-                    font.pixelSize: 24
-                    font.weight: Font.Bold
-                }
-                Qaterial.LabelBody2 {
-                    text: AppState.statusText
-                    color: view.isDark ? "#a1a1aa" : "#71717a"
-                    font.family: "Roboto"
-                    font.pixelSize: 14
-                }
+                isDark: view.isDark
+                titleFontFamily: "Roboto"
+                title: "System Overview"
+                subtitle: AppState.statusText
             }
 
             GridLayout {
@@ -71,14 +62,14 @@ Item {
 
                 StatCard {
                     Layout.fillWidth: true
-                    title: "Total Loggers"
+                    statTitle: "Total Loggers"
                     value: String(AppState.totalLoggers)
                     iconSource: Qaterial.Icons.server
                     isDark: view.isDark
                 }
                 StatCard {
                     Layout.fillWidth: true
-                    title: "Online Loggers"
+                    statTitle: "Online Loggers"
                     value: String(AppState.onlineLoggers)
                     iconSource: Qaterial.Icons.wifi
                     isDark: view.isDark
@@ -87,7 +78,7 @@ Item {
                 }
                 StatCard {
                     Layout.fillWidth: true
-                    title: "Active Alarms"
+                    statTitle: "Active Alarms"
                     value: String(AppState.alarmCount)
                     iconSource: Qaterial.Icons.alertOutline
                     isDark: view.isDark
@@ -131,6 +122,7 @@ Item {
                     Layout.minimumHeight: 400
                     isDark: view.isDark
                     dashboardController: view.dashboardController
+                    eventsModel: view.recentEventsModel
                     Behavior on Layout.preferredWidth {
                         NumberAnimation {
                             duration: UiMotion.durationNormal
@@ -168,6 +160,7 @@ Item {
                     Layout.minimumHeight: 400
                     isDark: view.isDark
                     dashboardController: view.dashboardController
+                    eventsModel: view.recentEventsModel
                 }
             }
 

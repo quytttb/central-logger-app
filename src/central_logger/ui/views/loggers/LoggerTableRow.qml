@@ -3,9 +3,10 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Qaterial 1.0 as Qaterial
 
+import "../../"
 import "../../components/common"
 
-Rectangle {
+ListRowDelegate {
     id: root
 
     property int loggerId: -1
@@ -21,31 +22,19 @@ Rectangle {
     property string lastUpdate: ""
     property string lastError: ""
 
-    property bool isDark: true
-    signal clicked()
-
+    clickable: true
     width: ListView.view ? ListView.view.width : implicitWidth
     height: 64
-    color: "transparent"
-
-    HoverHighlight {
-        hovered: rowMouse.containsMouse
-        isDark: root.isDark
-    }
-
-    Rectangle {
-        anchors.bottom: parent.bottom
-        width: parent.width; height: 1
-        color: root.isDark ? "#27272a" : "#f4f4f5"
-    }
 
     RowLayout {
-        anchors.fill: parent
+        width: parent.width
+        height: 64
+        anchors.left: parent.left
+        anchors.right: parent.right
         anchors.leftMargin: 24
         anchors.rightMargin: 24
         spacing: 0
 
-        // Name + Host cell
         RowLayout {
             Layout.preferredWidth: 300
             Layout.fillWidth: true
@@ -53,12 +42,12 @@ Rectangle {
 
             Rectangle {
                 width: 32; height: 32; radius: 16
-                color: root.isDark ? "#27272a" : "#f4f4f5"
+                color: Colors.buttonSecondary(root.isDark)
                 Qaterial.Icon {
                     anchors.centerIn: parent
                     icon: Qaterial.Icons.chip
                     size: 16
-                    color: root.online ? "#3b82f6" : "#71717a"
+                    color: root.online ? Colors.primary(root.isDark) : Colors.textMuted(root.isDark)
                 }
             }
 
@@ -67,7 +56,7 @@ Rectangle {
                 spacing: 2
                 Qaterial.LabelBody2 {
                     text: root.name
-                    color: root.isDark ? "#fafafa" : "#18181b"
+                    color: Colors.textPrimary(root.isDark)
                     font.family: "Roboto"
                     font.pixelSize: 14
                     font.weight: Font.Medium
@@ -76,14 +65,13 @@ Rectangle {
                 }
                 Qaterial.LabelCaption {
                     text: root.host + ":" + root.port + " (Unit: " + root.unitId + ")"
-                    color: root.isDark ? "#71717a" : "#a1a1aa"
+                    color: Colors.textMuted(root.isDark)
                     font.family: "Roboto"
                     font.pixelSize: 12
                 }
             }
         }
 
-        // Status badges
         RowLayout {
             Layout.preferredWidth: 200
             spacing: 6
@@ -99,25 +87,22 @@ Rectangle {
             }
         }
 
-        // Sensors
         Qaterial.LabelBody2 {
             Layout.preferredWidth: 100
             text: root.sensorCount + " sensors"
-            color: root.isDark ? "#d4d4d8" : "#3f3f46"
+            color: Colors.textBody(root.isDark)
             font.family: "Roboto"
             font.pixelSize: 14
         }
 
-        // Last Update
         Qaterial.LabelBody2 {
             Layout.preferredWidth: 120
             text: root.lastUpdate !== "" ? root.lastUpdate : "Never"
-            color: root.isDark ? "#a1a1aa" : "#71717a"
+            color: Colors.textSecondary(root.isDark)
             font.family: "Roboto"
             font.pixelSize: 14
         }
 
-        // Errors
         Item {
             Layout.preferredWidth: 240
             Layout.fillWidth: true
@@ -131,13 +116,13 @@ Rectangle {
                     visible: root.lastError !== ""
                     icon: Qaterial.Icons.alertOutline
                     size: 12
-                    color: "#ef4444"
+                    color: Colors.destructive(root.isDark)
                 }
                 Qaterial.LabelCaption {
                     text: root.lastError !== "" ? root.lastError : "None"
                     color: root.lastError !== ""
-                        ? "#ef4444"
-                        : (root.isDark ? "#71717a" : "#a1a1aa")
+                        ? Colors.destructive(root.isDark)
+                        : Colors.textMuted(root.isDark)
                     font.family: "Roboto"
                     font.pixelSize: 12
                     font.weight: root.lastError !== "" ? Font.Medium : Font.Normal
@@ -146,13 +131,5 @@ Rectangle {
                 }
             }
         }
-    }
-
-    MouseArea {
-        id: rowMouse
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onClicked: root.clicked()
     }
 }

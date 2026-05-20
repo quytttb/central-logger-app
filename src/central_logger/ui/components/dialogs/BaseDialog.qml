@@ -80,9 +80,9 @@ Popup {
     background: Rectangle {
         id: dialogCard
         radius: 12
-        color: root.isDark ? "#09090b" : "#ffffff"
+        color: Colors.surface(root.isDark)
         border.width: 1
-        border.color: root.isDark ? "#27272a" : "#e4e4e7"
+        border.color: Colors.border(root.isDark)
         transformOrigin: Item.Center
     }
 
@@ -104,7 +104,7 @@ Popup {
                 Rectangle {
                     anchors.bottom: parent.bottom
                     width: parent.width; height: 1
-                    color: root.isDark ? "#27272a" : "#f4f4f5"
+                    color: Colors.divider(root.isDark)
                 }
                 RowLayout {
                     anchors.fill: parent
@@ -112,7 +112,7 @@ Popup {
                     Qaterial.LabelBody1 {
                         text: root.title
                         Layout.fillWidth: true
-                        color: root.isDark ? "#fafafa" : "#18181b"
+                        color: Colors.textPrimary(root.isDark)
                         font.family: "Roboto"
                         font.pixelSize: 20
                         font.weight: Font.DemiBold
@@ -126,7 +126,7 @@ Popup {
                             hovered: closeMouse.containsMouse
                             isDark: root.isDark
                         }
-                        Qaterial.Icon { anchors.centerIn: parent; icon: Qaterial.Icons.close; size: 20; color: root.isDark ? "#a1a1aa" : "#71717a" }
+                        Qaterial.Icon { anchors.centerIn: parent; icon: Qaterial.Icons.close; size: 20; color: Colors.textSecondary(root.isDark) }
                         MouseArea {
                             id: closeMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                             onClicked: root.close()
@@ -159,7 +159,7 @@ Popup {
                 Rectangle {
                     anchors.top: parent.top
                     width: parent.width; height: 1
-                    color: root.isDark ? "#27272a" : "#f4f4f5"
+                    color: Colors.divider(root.isDark)
                     visible: root.showFooter
                 }
                 RowLayout {

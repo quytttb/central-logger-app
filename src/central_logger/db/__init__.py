@@ -1,4 +1,5 @@
 from central_logger.db.models import AppSettings, LoggerInfo, SensorReading, SystemEvent
+from central_logger.db.retention import purge_old_data
 from central_logger.db.session import get_engine, get_session, init_db
 
 __all__ = [
@@ -9,4 +10,5 @@ __all__ = [
     "get_engine",
     "get_session",
     "init_db",
+    "purge_old_data",
 ]

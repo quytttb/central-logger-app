@@ -48,6 +48,17 @@ Item {
 
     property alias canvas: canvasItem
 
+    Timer {
+        id: paintDebounce
+        interval: 300
+        repeat: false
+        onTriggered: canvasItem.requestPaint()
+    }
+
+    function schedulePaint() {
+        paintDebounce.restart()
+    }
+
     function xTickIndices() {
         var indices = []
         if (pointCount <= 0) return indices
@@ -66,9 +77,9 @@ Item {
         }
     }
 
-    onHoverCrosshairOpacityChanged: canvasItem.requestPaint()
-    onPointCountChanged: canvasItem.requestPaint()
-    onEffectiveYAxisLabelsCountChanged: canvasItem.requestPaint()
+    onHoverCrosshairOpacityChanged: schedulePaint()
+    onPointCountChanged: schedulePaint()
+    onEffectiveYAxisLabelsCountChanged: schedulePaint()
 
     Rectangle {
         x: chartRoot.cOX
@@ -96,7 +107,7 @@ Item {
 
         function drawGrid(ctx) {
             ctx.lineWidth = 1
-            ctx.strokeStyle = chartRoot.isDark ? "#27272a" : "#e4e4e7"
+            ctx.strokeStyle = Colors.border(chartRoot.isDark)
 
             var yCount = chartRoot.effectiveYAxisLabelsCount
             for (var i = 0; i <= yCount; i++) {
@@ -108,15 +119,15 @@ Item {
             }
         }
 
-        onWidthChanged: requestPaint()
-        onHeightChanged: requestPaint()
-        Component.onCompleted: requestPaint()
+        onWidthChanged: schedulePaint()
+        onHeightChanged: schedulePaint()
+        Component.onCompleted: schedulePaint()
     }
 
-    onCChartWChanged: canvasItem.requestPaint()
-    onCChartHChanged: canvasItem.requestPaint()
-    onIsDarkChanged: canvasItem.requestPaint()
-    onHoveredIndexChanged: canvasItem.requestPaint()
+    onCChartWChanged: schedulePaint()
+    onCChartHChanged: schedulePaint()
+    onIsDarkChanged: schedulePaint()
+    onHoveredIndexChanged: schedulePaint()
 
     MouseArea {
         anchors.fill: parent

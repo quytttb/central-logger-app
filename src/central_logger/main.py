@@ -33,7 +33,7 @@ prepare_qaterial_shared_library(PROJECT_ROOT)
 from central_logger.controllers import DashboardController, SettingsController  # noqa: F401
 from central_logger.db import init_db
 from central_logger.system_tray import SystemTrayBridge
-from central_logger.viewmodels import AppState, LoggerListModel  # noqa: F401
+from central_logger.viewmodels import AppState, LoggerListModel, RecentEventsModel  # noqa: F401
 
 
 def _resolve_resources_root() -> Path:
@@ -60,7 +60,6 @@ def _load_app_icon() -> QIcon:
 
 
 _FONT_FILES = (
-    "Lato/Lato-Regular.ttf",
     "Roboto/Roboto-Regular.ttf",
     "Roboto/Roboto-Medium.ttf",
     "RobotoMono/RobotoMono-Regular.ttf",
