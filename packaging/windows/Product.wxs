@@ -2,7 +2,9 @@
 <!--
   WiX source for Central Logger MSI.
   Build: scripts/build_msi.ps1 -DeployDir <nuitka output>
-  Requires WiX Toolset v3+ (candle.exe + light.exe) on PATH.
+  Main exe: $(var.DeployDir). Remaining deploy files: heat Harvest.wxs with $(var.DeployDir) (see build_msi.ps1).
+  TARGETDIR Name="SourceDir" is standard WiX layout — not the harvest file bind path.
+  Requires WiX Toolset v3+ (heat, candle, light) on PATH.
 -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <?define UpgradeCode = "A1B2C3D4-E5F6-7890-ABCD-EF1234567890" ?>

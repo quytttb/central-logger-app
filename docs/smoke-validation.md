@@ -58,7 +58,7 @@ chmod +x scripts/validate_packaging.sh
 
 - Luôn: kiểm tra syntax `build_deb.sh`, có `Product.wxs`
 - Chỉ build `.deb` khi tồn tại thư mục `deploy/` (sau `pyside6-deploy`)
-- `.msi`: chạy `scripts/build_msi.ps1` trên Windows với WiX
+- `.msi`: chạy `scripts/build_msi.ps1` trên Windows với WiX sau khi có `deploy/` đầy đủ (bindpath `DeployDir` cho heat/candle/light)
 
 ## Kết quả lần chạy gần nhất
 

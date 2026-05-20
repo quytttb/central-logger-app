@@ -1,4 +1,5 @@
 # Build MSI from pyside6-deploy / Nuitka deploy folder (Windows).
+# Harvested files use $(var.DeployDir) — candle -dDeployDir and light -b must point at deploy/.
 # Usage: .\scripts\build_msi.ps1 -DeployDir deploy [-Version 0.1.0]
 param(
     [Parameter(Mandatory = $true)]
@@ -67,11 +68,18 @@ foreach ($tool in @("heat.exe", "candle.exe", "light.exe")) {
     }
 }
 
+# CentralLogger.exe is in Product.wxs; exclude Nuitka marker stubs heat may reference without real files.
+$HeatExcludes = @(
+    "CentralLogger.exe",
+    "_nuitka_package.marker"
+)
+
 $HarvestWxs = Join-Path $ObjDir "Harvest.wxs"
-# Exclude main exe — Product.wxs already installs CentralLogger.exe + Start Menu shortcut.
+$heatExcludeArgs = foreach ($item in $HeatExcludes) { "-x"; $item }
+
 Invoke-WixStep -Label "heat harvest deploy/" -Command {
     heat.exe dir $DeployDir -cg HarvestedFiles -dr INSTALLFOLDER -gg -sfrag -srd `
-        -sreg -scom -x "CentralLogger.exe" -out $HarvestWxs
+        -sreg -scom @heatExcludeArgs -var var.DeployDir -out $HarvestWxs
 }
 
 $ProductWxs = Join-Path $WxsDir "Product.wxs"
@@ -82,11 +90,10 @@ Invoke-WixStep -Label "candle Product.wxs" -Command {
     candle.exe "-dDeployDir=$DeployDir" "-dProductVersion=$WixProductVersion" -out $ProductObj $ProductWxs
 }
 Invoke-WixStep -Label "candle Harvest.wxs" -Command {
-    candle.exe -out $HarvestObj $HarvestWxs
+    candle.exe "-dDeployDir=$DeployDir" -out $HarvestObj $HarvestWxs
 }
-
 Invoke-WixStep -Label "light MSI" -Command {
-    light.exe -out $OutMsi $ProductObj $HarvestObj
+    light.exe -b $DeployDir -out $OutMsi $ProductObj $HarvestObj
 }
 
 Write-Host "Built $OutMsi"

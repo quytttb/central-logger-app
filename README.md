@@ -266,6 +266,8 @@ Hoặc một lệnh: `.\scripts\build.ps1 msi patch -DeployDir deploy`
 
 Đã bump tay, chỉ đóng MSI: `.\scripts\build_msi.ps1 -DeployDir deploy` (tùy chọn `-Version`).
 
+**MSI build lỗi thường gặp:** `LGHT0103` / file not found under `SourceDir\...` — `deploy\` phải đầy đủ (chạy `build_deploy_windows.ps1` trước); script đã bind `$(var.DeployDir)` qua `heat -var`, `candle -dDeployDir`, `light -b deploy`.
+
 **Cài thử:** `msiexec /i "dist\CentralLogger-0.1.0-win64.msi"`
 
 ### Kiểm tra sau cài (smoke test)
