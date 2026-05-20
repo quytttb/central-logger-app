@@ -99,11 +99,7 @@ if [[ $# -gt 0 ]]; then
       fi
       _do_deb "${BUMP}"
       ;;
-    deploy|deploy-nuitka) _do_deploy ;;
-    deploy-venv)
-      echo "deploy-venv removed; use: $0 deploy" >&2
-      exit 1
-      ;;
+    deploy) _do_deploy ;;
     msi)
       echo "MSI: run .\\scripts\\build.ps1 on Windows." >&2
       exit 1

@@ -220,7 +220,6 @@ jobs:
         shell: pwsh
         run: |
           Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-          . "${{ github.workspace }}\scripts\prepend_msvc_tools.ps1"
           & "${{ github.workspace }}\scripts\build_deploy_windows.ps1"
 
       - name: Build MSI installer

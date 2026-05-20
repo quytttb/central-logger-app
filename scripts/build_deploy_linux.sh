@@ -8,23 +8,17 @@ DEPLOY="${ROOT}/deploy"
 IGNORE_DIRS="src/central_logger/controllers,src/central_logger/db,src/central_logger/services,src/central_logger/utils,src/central_logger/viewmodels"
 
 _publish_deploy_folder() {
-  local dist="" candidate
-  for candidate in \
-    "${DEPLOY}/CentralLogger.dist" \
-    "${ROOT}/Central Logger App.dist" \
-    "${ROOT}/src/central_logger/deployment/main.dist" \
-    "${ROOT}/main.dist"; do
-    if [[ -d "${candidate}" ]]; then
-      dist="${candidate}"
-      break
-    fi
-  done
+  local dist="${DEPLOY}/CentralLogger.dist"
+
+  if [[ ! -d "${dist}" ]]; then
+    dist=""
+  fi
 
   if [[ -z "${dist}" ]]; then
     if find "${DEPLOY}" -maxdepth 3 -type f -executable ! -name '*.so' 2>/dev/null | grep -q .; then
       return 0
     fi
-    echo "Nuitka output folder not found (expected *.dist or deploy/ executable)" >&2
+    echo "Nuitka output folder not found (expected deploy/CentralLogger.dist or deploy/ executable)" >&2
     exit 1
   fi
 

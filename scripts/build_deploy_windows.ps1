@@ -28,9 +28,7 @@ function Invoke-Checked {
 function Publish-DeployFolder {
     $dist = $null
     $candidates = @(
-        (Join-Path $DeployDir "CentralLogger.dist"),
-        (Join-Path $Root "Central Logger App.dist"),
-        (Join-Path $Root "src\central_logger\deployment\main.dist")
+        (Join-Path $DeployDir "CentralLogger.dist")
     )
     foreach ($path in $candidates) {
         if (Test-Path $path) {
@@ -39,7 +37,7 @@ function Publish-DeployFolder {
         }
     }
     if (-not $dist) {
-        throw "Nuitka output folder not found (expected CentralLogger.dist or main.dist)"
+        throw "Nuitka output folder not found (expected deploy\CentralLogger.dist)"
     }
 
     if ($dist -ne $DeployDir) {
