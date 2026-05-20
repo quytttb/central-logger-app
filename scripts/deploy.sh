@@ -99,7 +99,7 @@ _github_urls() {
   if [[ "${url}" =~ github\.com[:/]([^/]+)/([^/.]+) ]]; then
     local owner="${BASH_REMATCH[1]}"
     local repo="${BASH_REMATCH[2]%.git}"
-    echo "  Actions:  https://github.com/${owner}/${repo}/actions/workflows/release.yml"
+    echo "  Actions:  https://github.com/${owner}/${repo}/actions/workflows/build-release.yml"
     echo "  Releases: https://github.com/${owner}/${repo}/releases"
   fi
 }
@@ -176,7 +176,7 @@ _do_push_tag() {
   fi
   echo "Sẽ push: git push ${REMOTE} ${tag}"
   _github_urls
-  if _confirm "Push tag ${tag} lên ${REMOTE}? (kích hoạt workflow Release)"; then
+  if _confirm "Push tag ${tag} lên ${REMOTE}? (kích hoạt workflow Build Release)"; then
     git push "${REMOTE}" "${tag}"
     echo "Đã push ${tag}. Xem tiến trình build trên GitHub Actions."
     _github_urls
@@ -290,7 +290,7 @@ _show_menu() {
   echo "  2) Chỉ bump version (pyproject.toml)"
   echo "  3) Commit pyproject.toml"
   echo "  4) Tạo git tag annotated v{version}"
-  echo "  5) Push tag lên ${REMOTE} (kích hoạt workflow Release)"
+  echo "  5) Push tag lên ${REMOTE} (kích hoạt workflow Build Release)"
   echo "  6) Trạng thái — version, tag, git status"
   echo "  7) Cheat sheet lệnh git (chỉ in)"
   echo "  0) Thoát"

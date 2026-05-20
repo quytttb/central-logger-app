@@ -90,7 +90,7 @@ function Show-GitHubUrls {
     if ($url -match 'github\.com[:/]([^/]+)/([^/.]+)') {
         $owner = $Matches[1]
         $repo = $Matches[2] -replace '\.git$', ''
-        Write-Host "  Actions:  https://github.com/$owner/$repo/actions/workflows/release.yml"
+        Write-Host "  Actions:  https://github.com/$owner/$repo/actions/workflows/build-release.yml"
         Write-Host "  Releases: https://github.com/$owner/$repo/releases"
     }
 }
@@ -172,7 +172,7 @@ function Invoke-DoPushTag {
     }
     Write-Host "Se push: git push $Remote $tag"
     Show-GitHubUrls
-    if (Test-Confirm "Push tag $tag len $Remote? (kich hoat workflow Release)") {
+    if (Test-Confirm "Push tag $tag len $Remote? (kich hoat workflow Build Release)") {
         git push $Remote $tag
         Write-Host "Da push $tag. Xem tien trinh build tren GitHub Actions."
         Show-GitHubUrls
@@ -284,7 +284,7 @@ function Show-DeployMenu {
     Write-Host "  2) Chi bump version (pyproject.toml)"
     Write-Host "  3) Commit pyproject.toml"
     Write-Host "  4) Tao git tag annotated v{version}"
-    Write-Host "  5) Push tag len $Remote (kich hoat workflow Release)"
+    Write-Host "  5) Push tag len $Remote (kich hoat workflow Build Release)"
     Write-Host "  6) Trang thai — version, tag, git status"
     Write-Host "  7) Cheat sheet lenh git (chi in)"
     Write-Host "  0) Thoat"

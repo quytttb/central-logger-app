@@ -75,11 +75,12 @@ $HeatExcludes = @(
 )
 
 $HarvestWxs = Join-Path $ObjDir "Harvest.wxs"
+$HeatWin64Xslt = Join-Path $WxsDir "HeatWin64.xslt"
 $heatExcludeArgs = foreach ($item in $HeatExcludes) { "-x"; $item }
 
 Invoke-WixStep -Label "heat harvest deploy/" -Command {
     heat.exe dir $DeployDir -cg HarvestedFiles -dr INSTALLFOLDER -gg -sfrag -srd `
-        -sreg -scom @heatExcludeArgs -var var.DeployDir -out $HarvestWxs
+        -sreg -scom @heatExcludeArgs -var var.DeployDir -t $HeatWin64Xslt -out $HarvestWxs
 }
 
 $ProductWxs = Join-Path $WxsDir "Product.wxs"

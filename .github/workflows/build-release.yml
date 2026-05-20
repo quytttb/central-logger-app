@@ -1,6 +1,6 @@
-# Release: build .deb (Ubuntu) + .msi (Windows) và publish GitHub Release.
+# Build Release: build .deb (Ubuntu) + .msi (Windows) và publish GitHub Release.
 # Trigger: push tag vMAJOR.MINOR.PATCH hoặc workflow_dispatch (tag đã tồn tại).
-name: Release
+name: Build Release
 
 on:
   push:
@@ -15,7 +15,7 @@ on:
 
 # Tránh chạy trùng trên cùng ref/tag
 concurrency:
-  group: release-${{ github.workflow }}-${{ github.ref }}
+  group: build-release-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
