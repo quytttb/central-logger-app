@@ -270,7 +270,7 @@ Hoặc một lệnh: `.\scripts\build.ps1 msi patch -DeployDir deploy`
 
 Đã bump tay, chỉ đóng MSI: `.\scripts\build_msi.ps1 -DeployDir deploy` (tùy chọn `-Version`).
 
-**MSI build:** `packaging/windows/Package.wxs` harvest `deploy\` qua WiX 7 `<Files>` + `BindPath`. `deploy\` phải đầy đủ (chạy `build_deploy_windows.ps1` trước). CI: workflow **MSI Packaging** rebuild MSI nhanh từ cache `deploy/` sau Dev Build thành công.
+**MSI build:** `packaging/windows/Package.wxs` harvest `deploy\` qua WiX 7 `<Files>` + `BindPath`. `deploy\` phải đầy đủ (chạy `build_deploy_windows.ps1` trước). CI: workflow **MSI Packaging** dùng cache `deploy/` nếu có (nhanh); nếu chưa có cache thì tự build `deploy/` rồi đóng MSI.
 
 **Cài thử:** `msiexec /i "dist\CentralLogger-0.1.0-win64.msi"`
 
