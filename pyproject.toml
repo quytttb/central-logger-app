@@ -1,6 +1,6 @@
 [project]
 name = "central-logger-app"
-version = "0.1.9"
+version = "0.1.10"
 description = "Central management app for Modbus TCP Data Loggers (PySide6 + QML, Material Light)"
 readme = "README.md"
 requires-python = ">=3.10"
