@@ -36,8 +36,12 @@ central-logger-app/
 │   ├── fonts/              # Roboto, Roboto Mono, Material Symbols Outlined
 │   └── images/
 ├── scripts/
+│   ├── build.sh              # Linux: menu .deb + SemVer bump
+│   ├── build.ps1             # Windows: menu MSI + SemVer bump
 │   ├── build_deb.sh          # .deb từ thư mục deploy
+│   ├── build_deploy_venv.sh  # deploy/ venv (Linux .deb)
 │   ├── build_msi.ps1         # .msi (Windows, cần WiX)
+│   ├── bump_version.py       # SemVer → pyproject.toml
 │   └── stage_zbar_windows.ps1
 ├── packaging/windows/        # WiX Product.wxs
 ├── docs/perf-baseline.md
@@ -101,20 +105,33 @@ Gỡ lỗi Modbus / UI cập nhật trạng thái: chạy với `CENTRAL_LOGGER_
 
 ## Triển khai Windows
 
-```cmd
-:: Trên Windows (Python 3.12 + venv NEW, không copy từ Linux)
+**Prerequisites:** Windows 10/11 x64, Python 3.12 hoặc 3.13, Git. Venv **mới trên Windows** — không copy `.venv` từ Linux.
+
+```powershell
+git clone https://github.com/quytttb/central-logger-app.git
+cd central-logger-app
 python -m venv .venv
-.venv\Scripts\activate
+.\.venv\Scripts\Activate.ps1
+# Nếu bị chặn script: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+python -m pip install -U pip
 pip install -e ".[build]"
-
-:: QR scan: stage ZBar DLLs once (x64) — see resources\native\windows\README.md
-powershell -ExecutionPolicy Bypass -File scripts\stage_zbar_windows.ps1 -Source "C:\path\to\zbar\bin"
-
-pyside6-rcc resources\resources.qrc -o src\central_logger\resources_rc.py
-pyside6-deploy src\central_logger\main.py
 ```
 
-Sau build, thư mục deploy có `native\windows\libzbar-64.dll` — **không** cần operator cài apt/ZBar; chỉ chạy `.exe`.
+**QR scan (tùy chọn):** stage ZBar DLL x64 — xem [`resources/native/windows/README.md`](resources/native/windows/README.md).
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\stage_zbar_windows.ps1 -Source "C:\path\to\zbar\bin"
+```
+
+**Build portable (`deploy\`):**
+
+```powershell
+pyside6-rcc resources\resources.qrc -o src\central_logger\resources_rc.py
+pyside6-deploy src\central_logger\main.py -f
+.\deploy\CentralLogger.exe
+```
+
+Sau build, `deploy\` chứa `CentralLogger.exe` và DLL/Qt; nếu đã stage ZBar thì có `native\windows\libzbar-64.dll` — user **không** cần cài ZBar riêng.
 
 Tham khảo `pysidedeploy.spec` (`--include-data-dir=resources/native/windows=native/windows`, `--nofollow-import-to=pytest,tests`) và loại bỏ QML plugins thừa (`excluded_qml_plugins = WebEngine, Quick3D, ...`).
 
@@ -125,8 +142,8 @@ Tham khảo `pysidedeploy.spec` (`--include-data-dir=resources/native/windows=na
 | Nền tảng | File phát hành | Cài đặt |
 |----------|----------------|---------|
 | Ubuntu | `dist/central-logger-app_<ver>_amd64.deb` | `sudo apt install ./...deb` |
-| Windows | `dist/CentralLogger-<ver>-win64.msi` | double-click hoặc `msiexec /i` |
-| Windows (dev) | thư mục deploy + `CentralLogger.exe` | portable, không installer |
+| Windows (portable) | `CentralLogger-<ver>-win64.zip` (thư mục `deploy\`) | giải nén, chạy `CentralLogger.exe` — **không cần WiX** |
+| Windows (MSI) | `dist/CentralLogger-<ver>-win64.msi` | double-click hoặc `msiexec /i` — cần WiX khi build |
 
 ### MSI và `.exe` — khác nhau thế nào?
 
@@ -157,20 +174,40 @@ sudo apt install ./dist/central-logger-app_*_amd64.deb
 
 App cài tại `/opt/central-logger/`, lệnh `central-logger`, shortcut trong menu ứng dụng.
 
-### Đóng gói Windows (`.msi`)
+### Đóng gói Windows — Cách 1: Portable (không WiX)
 
-1. Build portable như mục **Triển khai Windows** (`pyside6-deploy` → thư mục có `CentralLogger.exe`).
+Không cần WiX. Phù hợp phát hành nội bộ hoặc khi IT không yêu cầu file `.msi`.
+
+1. Build như mục **Triển khai Windows** (đã có `deploy\CentralLogger.exe`).
+2. (Tùy chọn) Bump version: `python scripts\bump_version.py bump patch`
+3. Chạy thử: `.\deploy\CentralLogger.exe`
+4. Đóng gói phát hành — zip **toàn bộ** thư mục `deploy\`:
+
+```powershell
+New-Item -ItemType Directory -Force -Path dist | Out-Null
+$ver = python scripts\bump_version.py show
+Compress-Archive -Path deploy\* -DestinationPath "dist\CentralLogger-$ver-win64.zip" -Force
+```
+
+User giải nén zip → chạy `CentralLogger.exe` trong thư mục đã giải nén. Có thể copy folder `deploy\` sang máy khác (cùng Windows x64).
+
+### Đóng gói Windows — Cách 2: Installer `.msi` (cần WiX)
+
+1. Build portable như **Triển khai Windows** (phải có `deploy\CentralLogger.exe`).
 2. Cài [WiX Toolset](https://wixtoolset.org/) (`heat.exe`, `candle.exe`, `light.exe` trên PATH).
-3. Chạy:
+3. Chạy menu (chọn PATCH / MINOR / MAJOR):
 
 ```powershell
 .\scripts\build.ps1
-# Hoặc: .\scripts\build.ps1 msi patch -DeployDir deploy
 ```
 
-Output: `dist\CentralLogger-<version>-win64.msi` (version từ `pyproject.toml` sau bump).
+Hoặc một lệnh: `.\scripts\build.ps1 msi patch -DeployDir deploy`
 
-Hoặc đã bump tay: `.\scripts\build_msi.ps1 -DeployDir deploy` (tùy chọn `-Version` override).
+**Output:** `dist\CentralLogger-<version>-win64.msi` (version từ `pyproject.toml` sau bump).
+
+Đã bump tay, chỉ đóng MSI: `.\scripts\build_msi.ps1 -DeployDir deploy` (tùy chọn `-Version`).
+
+**Cài thử:** `msiexec /i "dist\CentralLogger-0.1.0-win64.msi"`
 
 ### Kiểm tra sau cài (smoke test)
 
