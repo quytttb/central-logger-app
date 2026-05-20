@@ -10,6 +10,62 @@ param(
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $Stage = Join-Path $Root "scripts\stage_zbar_windows.ps1"
+$DeployDir = Join-Path $Root "deploy"
+$ExePath = Join-Path $DeployDir "CentralLogger.exe"
+
+function Invoke-Checked {
+    param(
+        [string]$Label,
+        [scriptblock]$Command
+    )
+    Write-Host "== $Label =="
+    & $Command
+    if ($LASTEXITCODE -ne 0) {
+        throw "$Label failed (exit $LASTEXITCODE)"
+    }
+}
+
+function Publish-DeployFolder {
+    $dist = $null
+    $candidates = @(
+        (Join-Path $DeployDir "CentralLogger.dist"),
+        (Join-Path $Root "Central Logger App.dist"),
+        (Join-Path $Root "src\central_logger\deployment\main.dist")
+    )
+    foreach ($path in $candidates) {
+        if (Test-Path $path) {
+            $dist = $path
+            break
+        }
+    }
+    if (-not $dist) {
+        throw "Nuitka output folder not found (expected CentralLogger.dist or main.dist)"
+    }
+
+    if ($dist -ne $DeployDir) {
+        $staging = Join-Path $Root "_deploy_stage"
+        if (Test-Path $staging) {
+            Remove-Item -Recurse -Force $staging
+        }
+        New-Item -ItemType Directory -Force -Path $staging | Out-Null
+        Copy-Item -Path (Join-Path $dist "*") -Destination $staging -Recurse -Force
+        if (Test-Path $DeployDir) {
+            Remove-Item -Recurse -Force $DeployDir
+        }
+        Move-Item $staging $DeployDir
+        if ($dist -ne (Join-Path $DeployDir "CentralLogger.dist")) {
+            Remove-Item -Recurse -Force $dist -ErrorAction SilentlyContinue
+        }
+    }
+
+    $mainExe = Join-Path $DeployDir "main.exe"
+    if (Test-Path $mainExe) {
+        if (Test-Path $ExePath) {
+            Remove-Item -Force $ExePath
+        }
+        Rename-Item -Path $mainExe -NewName "CentralLogger.exe"
+    }
+}
 
 Set-Location $Root
 
@@ -19,12 +75,19 @@ if ($SkipQr) {
     & $Stage
 }
 
-Write-Host "== Compile Qt resources =="
-pyside6-rcc resources\resources.qrc -o src\central_logger\resources_rc.py
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+Invoke-Checked -Label "Compile Qt resources" -Command {
+    pyside6-rcc resources\resources.qrc -o src\central_logger\resources_rc.py
+}
 
-Write-Host "== pyside6-deploy =="
-pyside6-deploy src\central_logger\main.py -f
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+Invoke-Checked -Label "pyside6-deploy" -Command {
+    # Use repo pysidedeploy.spec at project root (portable icon/python_path).
+    pyside6-deploy -c pysidedeploy.spec src\central_logger\main.py --mode standalone
+}
+
+Publish-DeployFolder
+
+if (-not (Test-Path $ExePath)) {
+    throw "Deploy failed: $ExePath was not created"
+}
 
 Write-Host "Done. Run: .\deploy\CentralLogger.exe"

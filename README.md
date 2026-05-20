@@ -136,13 +136,13 @@ powershell -ExecutionPolicy Bypass -File scripts\build_deploy_windows.ps1
 # Hoặc từng bước:
 powershell -ExecutionPolicy Bypass -File scripts\stage_zbar_windows.ps1
 pyside6-rcc resources\resources.qrc -o src\central_logger\resources_rc.py
-pyside6-deploy src\central_logger\main.py -f
+pyside6-deploy -c pysidedeploy.spec src\central_logger\main.py --mode standalone
 .\deploy\CentralLogger.exe
 ```
 
 Sau build, `deploy\` chứa `CentralLogger.exe` và DLL/Qt; nếu đã stage ZBar thì có `native\windows\libzbar-64.dll` — user **không** cần cài ZBar riêng.
 
-Tham khảo `pysidedeploy.spec` (`--include-data-dir=resources/native/windows=native/windows`, `--nofollow-import-to=pytest,tests`) và loại bỏ QML plugins thừa (`excluded_qml_plugins = WebEngine, Quick3D, ...`).
+Tham khảo `pysidedeploy.spec` ở **root repo** (`icon` / `python_path` để trống — PySide6 tự dùng icon trong venv; không commit đường dẫn máy dev). Output: `deploy\CentralLogger.exe`.
 
 **Build nhỏ hơn (không QR):** bỏ qua `stage_zbar_windows.ps1` và không copy `resources/native/windows/`; QR scan trong Add Logger sẽ báo lỗi thiếu thư viện — phù hợp môi trường không cần provisioning qua ảnh.
 
