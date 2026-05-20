@@ -18,30 +18,66 @@ if (-not $installPath) {
     return
 }
 
-# Windows SDK component (Nuitka: must be installed in VS, not only standalone SDK).
-$sdkComponent = "Microsoft.VisualStudio.Component.Windows11SDK.22621"
-$hasSdk = & $vswhere -latest -products * -requires $sdkComponent -property installationPath 2>$null
-if (-not $hasSdk) {
-    $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-    if (Test-Path $vsInstaller) {
-        Write-Host "[deploy] Installing VS component: $sdkComponent"
-        $proc = Start-Process -FilePath $vsInstaller -ArgumentList @(
-            "modify",
-            "--installPath", $installPath,
-            "--add", $sdkComponent,
-            "--quiet",
-            "--wait",
-            "--norestart"
-        ) -PassThru -Wait -NoNewWindow
-        if ($proc.ExitCode -ne 0) {
-            throw "vs_installer modify failed (exit $($proc.ExitCode)) for $sdkComponent"
+$installPath = $installPath.TrimEnd('\')
+
+function Test-WindowsKits10 {
+    return Test-Path "${env:ProgramFiles(x86)}\Windows Kits\10\Include"
+}
+
+function Get-VsWindowsSdkComponent {
+    $sdkComponentIds = @(
+        'Microsoft.VisualStudio.Component.Windows11SDK.26100',
+        'Microsoft.VisualStudio.Component.Windows11SDK.22621',
+        'Microsoft.VisualStudio.Component.Windows11SDK.22000',
+        'Microsoft.VisualStudio.Component.Windows10SDK.19041',
+        'Microsoft.VisualStudio.Component.Windows10SDK'
+    )
+    foreach ($id in $sdkComponentIds) {
+        $found = & $vswhere -latest -products * -requires $id -property installationPath 2>$null
+        if ($found) {
+            return $id
         }
-        Write-Host "[deploy] Windows SDK component installed."
-    } else {
-        Write-Host "[deploy] vs_installer.exe not found; cannot add $sdkComponent"
     }
-} else {
+    return $null
+}
+
+$sdkComponent = Get-VsWindowsSdkComponent
+$hasWindowsKits = Test-WindowsKits10
+
+if ($sdkComponent) {
     Write-Host "[deploy] Windows SDK component present ($sdkComponent)"
+} elseif ($hasWindowsKits) {
+    Write-Host "[deploy] Windows Kits 10 present (standalone SDK)"
+} else {
+    $onCi = $env:GITHUB_ACTIONS -eq 'true'
+    if ($onCi) {
+        Write-Host "[deploy] No VS SDK component detected on CI; skipping vs_installer (use preinstalled runner SDK + VsDevShell)"
+    } else {
+        $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+        $preferredSdk = 'Microsoft.VisualStudio.Component.Windows11SDK.22621'
+        if (Test-Path $vsInstaller) {
+            Write-Host "[deploy] Installing VS component: $preferredSdk"
+            $proc = Start-Process -FilePath $vsInstaller -ArgumentList @(
+                'modify',
+                '--installPath', $installPath,
+                '--add', $preferredSdk,
+                '--quiet',
+                '--wait',
+                '--norestart'
+            ) -PassThru -Wait -NoNewWindow
+            if ($proc.ExitCode -ne 0) {
+                Write-Warning "vs_installer modify failed (exit $($proc.ExitCode)) for $preferredSdk; continuing with VsDevShell"
+            } else {
+                Write-Host "[deploy] Windows SDK component installed."
+                $sdkComponent = Get-VsWindowsSdkComponent
+            }
+        } else {
+            Write-Warning "[deploy] vs_installer.exe not found; cannot add $preferredSdk"
+        }
+        if (-not $sdkComponent) {
+            $hasWindowsKits = Test-WindowsKits10
+        }
+    }
 }
 
 $launchVs = Join-Path $installPath "Common7\Tools\Launch-VsDevShell.ps1"
@@ -51,6 +87,12 @@ if (Test-Path $launchVs) {
     Write-Host "[deploy] VsDevShell amd64 active ($installPath)"
 } else {
     Write-Host "[deploy] Launch-VsDevShell.ps1 not found; using PATH-only MSVC tools"
+}
+
+$hasSdkEnv = -not [string]::IsNullOrWhiteSpace($env:WindowsSdkDir)
+$hasWindowsKits = Test-WindowsKits10
+if (-not $hasSdkEnv -and -not $hasWindowsKits -and -not $sdkComponent) {
+    throw "[deploy] Windows SDK not found. Install VS workload 'Desktop development with C++' + Windows SDK."
 }
 
 $dumpbin = Get-ChildItem -Path (Join-Path $installPath "VC\Tools\MSVC") `
