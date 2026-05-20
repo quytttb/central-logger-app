@@ -6,7 +6,11 @@ import json
 from pathlib import Path
 
 _MANIFEST = (
-    Path(__file__).resolve().parents[1] / "resources" / "native" / "windows" / "zbar-dlls.manifest.json"
+    Path(__file__).resolve().parents[1]
+    / "resources"
+    / "native"
+    / "windows"
+    / "zbar-dlls.manifest.json"
 )
 
 
@@ -17,4 +21,6 @@ def test_zbar_manifest_lists_required_dlls():
     assert "libiconv.dll" in names
     for entry in data["files"]:
         assert len(entry["sha256"]) == 64
-        assert entry["url"].startswith("https://github.com/NaturalHistoryMuseum/barcode-reader-dlls/")
+        assert entry["url"].startswith(
+            "https://github.com/NaturalHistoryMuseum/barcode-reader-dlls/"
+        )
