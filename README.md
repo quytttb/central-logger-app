@@ -142,7 +142,7 @@ pyside6-deploy -c pysidedeploy.spec src\central_logger\main.py --mode standalone
 
 Sau build, `deploy\` chứa `CentralLogger.exe` và DLL/Qt; nếu đã stage ZBar thì có `native\windows\libzbar-64.dll` — user **không** cần cài ZBar riêng.
 
-Tham khảo `pysidedeploy.spec` ở **root repo** (`icon` / `python_path` để trống — PySide6 tự dùng icon trong venv; không commit đường dẫn máy dev). Output: `deploy\CentralLogger.exe`.
+Tham khảo `pysidedeploy.spec` ở **root repo** (`icon` / `python_path` để trống; `project_file = pyproject.toml`). Output: `deploy\CentralLogger.exe`. **Tùy chọn:** cài [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (workload C++) để hết cảnh báo `dumpbin` khi deploy (`scripts/prepend_msvc_tools.ps1` tự thêm vào PATH nếu đã cài).
 
 **Build nhỏ hơn (không QR):** bỏ qua `stage_zbar_windows.ps1` và không copy `resources/native/windows/`; QR scan trong Add Logger sẽ báo lỗi thiếu thư viện — phù hợp môi trường không cần provisioning qua ảnh.
 

@@ -2,7 +2,7 @@
 title = CentralLogger
 project_dir = .
 input_file = src/central_logger/main.py
-project_file =
+project_file = pyproject.toml
 icon =
 exec_directory = deploy
 

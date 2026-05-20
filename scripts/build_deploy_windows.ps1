@@ -79,6 +79,8 @@ Invoke-Checked -Label "Compile Qt resources" -Command {
     pyside6-rcc resources\resources.qrc -o src\central_logger\resources_rc.py
 }
 
+. (Join-Path $Root "scripts\prepend_msvc_tools.ps1")
+
 Invoke-Checked -Label "pyside6-deploy" -Command {
     # Use repo pysidedeploy.spec at project root (portable icon/python_path).
     pyside6-deploy -c pysidedeploy.spec src\central_logger\main.py --mode standalone
