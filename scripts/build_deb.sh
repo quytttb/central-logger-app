@@ -50,6 +50,9 @@ if [[ -f "${LOGO_SVG}" ]]; then
   if command -v rsvg-convert >/dev/null 2>&1; then
     rsvg-convert -w 256 -h 256 "${LOGO_SVG}" \
       -o "${STAGING}/usr/share/icons/hicolor/256x256/apps/central-logger.png"
+  else
+    echo "[build_deb] WARNING: rsvg-convert not found; skipping 256x256 menu icon PNG." >&2
+    echo "[build_deb]          Install: sudo apt install librsvg2-bin" >&2
   fi
 fi
 
@@ -73,7 +76,7 @@ Priority: optional
 Architecture: ${ARCH}
 Depends: libzbar0, libxkbcommon0, libegl1, libgl1, libfontconfig1, libdbus-1-3
 Maintainer: Central Logger Team <dev@local>
-Description: Central Logger App — PySide6 desktop client
+Description: Central Logger App - PySide6 desktop client
 EOF
 
 cat > "${STAGING}/DEBIAN/postinst" <<'EOF'
