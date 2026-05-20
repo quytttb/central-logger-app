@@ -20,6 +20,7 @@ def test_pysidedeploy_spec_targets_deploy_output():
     assert "exec_directory = deploy" in text
     assert "title = CentralLogger" in text
     assert "project_file = pyproject.toml" in text
+    assert "--assume-yes-for-downloads" in text
 
 
 def test_pyproject_has_pyside6_project_tool():
@@ -27,3 +28,5 @@ def test_pyproject_has_pyside6_project_tool():
     text = pyproject.read_text(encoding="utf-8")
     assert "[tool.pyside6-project]" in text
     assert "src/central_logger/main.py" in text
+    assert "src/central_logger/controllers/dashboard_controller.py" in text
+    assert "ziglang" in text

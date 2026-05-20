@@ -19,7 +19,7 @@ plugins = accessiblebridge,egldeviceintegrations,generic,iconengines,imageformat
 [nuitka]
 mode = standalone
 macos.permissions =
-extra_args = --quiet --noinclude-qt-translations --enable-plugin=pyside6 --lto=no --nofollow-import-to=pytest,tests --include-data-dir=resources/native/windows=native/windows --include-qt-plugins=sensible
+extra_args = --quiet --noinclude-qt-translations --enable-plugin=pyside6 --lto=no --nofollow-import-to=pytest,tests --include-data-dir=resources/native/windows=native/windows --include-qt-plugins=sensible --assume-yes-for-downloads
 
 [buildozer]
 mode =

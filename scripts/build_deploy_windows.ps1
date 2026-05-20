@@ -69,6 +69,8 @@ function Publish-DeployFolder {
 
 Set-Location $Root
 
+. (Join-Path $Root "scripts\preflight_python_windows.ps1")
+
 if ($SkipQr) {
     & $Stage -SkipQr
 } else {
@@ -81,9 +83,18 @@ Invoke-Checked -Label "Compile Qt resources" -Command {
 
 . (Join-Path $Root "scripts\prepend_msvc_tools.ps1")
 
+$DeployIgnoreDirs = @(
+    "src/central_logger/controllers",
+    "src/central_logger/db",
+    "src/central_logger/services",
+    "src/central_logger/utils",
+    "src/central_logger/viewmodels"
+) -join ","
+
 Invoke-Checked -Label "pyside6-deploy" -Command {
-    # Use repo pysidedeploy.spec at project root (portable icon/python_path).
-    pyside6-deploy -c pysidedeploy.spec src\central_logger\main.py --mode standalone
+    # --force: no deploy prompts; --assume-yes-for-downloads in pysidedeploy.spec for Nuitka.
+    pyside6-deploy -c pysidedeploy.spec src\central_logger\main.py --mode standalone --force `
+        --extra-ignore-dirs=$DeployIgnoreDirs
 }
 
 Publish-DeployFolder

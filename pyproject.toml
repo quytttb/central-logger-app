@@ -34,6 +34,7 @@ test = [
 ]
 build = [
     "nuitka",
+    "ziglang",
 ]
 
 [project.scripts]
@@ -64,6 +65,22 @@ ignore = ["E501"]
 line-length = 100
 target-version = ["py310"]
 
-# PySide6 pyside6-deploy / pyside6-project (removes "no project file" warning)
+# PySide6 pyside6-deploy / pyside6-project (project file resolution for deploy)
 [tool.pyside6-project]
-files = ["src/central_logger/main.py"]
+files = [
+    "src/central_logger/main.py",
+    "src/central_logger/app_paths.py",
+    "src/central_logger/system_tray.py",
+    "src/central_logger/controllers/__init__.py",
+    "src/central_logger/controllers/dashboard_controller.py",
+    "src/central_logger/controllers/settings_controller.py",
+    "src/central_logger/viewmodels/__init__.py",
+    "src/central_logger/viewmodels/app_state.py",
+    "src/central_logger/viewmodels/logger_list_model.py",
+    "src/central_logger/viewmodels/recent_events_model.py",
+    "src/central_logger/services/__init__.py",
+    "src/central_logger/services/modbus_manager.py",
+    "src/central_logger/db/__init__.py",
+    "src/central_logger/db/session.py",
+    "src/central_logger/utils/native_libs.py",
+]

@@ -109,6 +109,8 @@ Gỡ lỗi Modbus / UI cập nhật trạng thái: chạy với `CENTRAL_LOGGER_
 
 **Prerequisites:** Windows 10/11 x64, Python 3.12 hoặc 3.13, Git. Venv **mới trên Windows** — không copy `.venv` từ Linux.
 
+> **Quan trọng:** dùng Python cài từ [python.org](https://www.python.org/downloads/) (bản **64-bit**, có thư mục `libs\python3*.lib`). **Không** dùng Python từ Microsoft Store (`WindowsApps\PythonSoftwareFoundation...`) — Nuitka sẽ lỗi `unable to find dynamic system library 'python313'` / `AccessDenied` trên `libs`. Tắt alias Store: Settings → Apps → Advanced app settings → App execution aliases (tắt `python.exe` / `python3.exe`). Script `build_deploy_windows.ps1` chạy `preflight_python_windows.ps1` để báo lỗi sớm.
+
 ```powershell
 git clone https://github.com/quytttb/central-logger-app.git
 cd central-logger-app
@@ -142,7 +144,20 @@ pyside6-deploy -c pysidedeploy.spec src\central_logger\main.py --mode standalone
 
 Sau build, `deploy\` chứa `CentralLogger.exe` và DLL/Qt; nếu đã stage ZBar thì có `native\windows\libzbar-64.dll` — user **không** cần cài ZBar riêng.
 
-Tham khảo `pysidedeploy.spec` ở **root repo** (`icon` / `python_path` để trống; `project_file = pyproject.toml`). Output: `deploy\CentralLogger.exe`. **Tùy chọn:** cài [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (workload C++) để hết cảnh báo `dumpbin` khi deploy (`scripts/prepend_msvc_tools.ps1` tự thêm vào PATH nếu đã cài).
+Tham khảo `pysidedeploy.spec` ở **root repo** (`icon` / `python_path` để trống; `project_file = pyproject.toml`; Nuitka `--assume-yes-for-downloads` trong `extra_args`). Output: `deploy\CentralLogger.exe`. Script `build_deploy_windows.ps1` gọi `pyside6-deploy --force` và bỏ qua thư mục Python thuần (không có file data) khi deploy.
+
+**Cảnh báo khi build (có thể bỏ qua):**
+
+| Cảnh báo | Ý nghĩa |
+|----------|---------|
+| `Unable to find dumpbin` | Máy build chưa có MSVC — deploy vẫn chạy; **tùy chọn** cài [VS Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (C++) để quét phụ thuộc Qt tốt hơn (`prepend_msvc_tools.ps1` thêm PATH nếu đã cài). |
+| `msvcp140.dll` not found | Nuitka không bundle VC++ runtime nếu không có VS trên máy build. **Máy chạy app:** cài [VC++ Redistributable x64](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) nếu `CentralLogger.exe` không khởi động. |
+| `No project file found` | Thường cosmetic khi dùng `-c pysidedeploy.spec`; `[tool.pyside6-project]` trong `pyproject.toml` liệt kê các module chính. |
+| `No data files in directory ...` | Đã giảm bằng `--extra-ignore-dirs` cho `controllers`, `db`, `services`, `utils`, `viewmodels`. |
+
+**Không** dùng `$env:NUITKA_ASSUME_YES_FOR_DOWNLOADS` — Nuitka không đọc biến này. Tải Dependency Walker / `ziglang` tự động nhờ `--assume-yes-for-downloads` trong spec và `pip install -e ".[build]"` (đã gồm `ziglang`).
+
+**Máy chạy portable zip (user cuối):** ngoài ZBar (đã bundle nếu build có QR), có thể cần [VC++ Redistributable x64](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) và (cho QR DLL) [VC++ 2013 x64](https://www.microsoft.com/en-us/download/details.aspx?id=40784) — xem [`resources/native/windows/README.md`](resources/native/windows/README.md).
 
 **Build nhỏ hơn (không QR):** bỏ qua `stage_zbar_windows.ps1` và không copy `resources/native/windows/`; QR scan trong Add Logger sẽ báo lỗi thiếu thư viện — phù hợp môi trường không cần provisioning qua ảnh.
 
