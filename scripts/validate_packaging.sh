@@ -14,9 +14,9 @@ if [[ -f scripts/build_msi.ps1 ]]; then
 fi
 
 DEPLOY="${ROOT}/deploy"
-if [[ ! -d "${DEPLOY}" ]] || [[ ! -x "${DEPLOY}/central-logger" ]]; then
-  echo "No deploy/ — creating venv deploy (./scripts/build_deploy_venv.sh)..."
-  "${ROOT}/scripts/build_deploy_venv.sh"
+if [[ ! -d "${DEPLOY}" ]] || ! find "${DEPLOY}" -maxdepth 3 -type f -executable ! -name '*.so' 2>/dev/null | grep -q .; then
+  echo "No deploy/ — running ./scripts/build_deploy_linux.sh..."
+  "${ROOT}/scripts/build_deploy_linux.sh"
 fi
 
 echo "== Building .deb from ${DEPLOY} =="

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a .deb from deploy/ (venv or Nuitka output).
+# Build a .deb from deploy/ (Nuitka / pyside6-deploy output).
 # Version is read from pyproject.toml (bump via ./scripts/build.sh deb patch|minor|major).
 # Usage: ./scripts/build_deb.sh [DEPLOY_DIR]
 set -euo pipefail

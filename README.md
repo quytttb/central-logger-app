@@ -41,12 +41,11 @@ central-logger-app/
 │   ├── deploy.sh             # Linux: menu git tag/push → GitHub Release
 │   ├── deploy.ps1            # Windows: menu git tag/push → GitHub Release
 │   ├── build_deb.sh          # .deb từ thư mục deploy
-│   ├── build_deploy_venv.sh  # deploy/ venv (Linux, build local)
-│   ├── build_deploy_nuitka_linux.sh  # deploy/ Nuitka (Linux, CI + build.sh)
-│   ├── build_msi.ps1         # .msi (Windows, cần WiX)
-│   ├── bump_version.py       # SemVer → pyproject.toml
+│   ├── build_deploy_linux.sh    # deploy/ Nuitka (Linux; CI + build.sh)
+│   ├── build_deploy_windows.ps1 # deploy/ Nuitka (Windows)
+│   ├── build_msi.ps1            # .msi (Windows, cần WiX)
+│   ├── bump_version.py          # SemVer → pyproject.toml
 │   ├── stage_zbar_windows.ps1   # auto-download ZBar DLLs (Windows)
-│   ├── build_deploy_windows.ps1 # stage + rcc + pyside6-deploy
 │   └── fetch_zbar_windows.py    # same download (Linux/WSL)
 ├── packaging/windows/        # WiX Product.wxs
 ├── docs/perf-baseline.md
@@ -219,21 +218,18 @@ Prerequisite: thư mục deploy sau `pyside6-deploy`, và trên máy cài `libzb
 Icon menu `.deb`: `resources/images/4M Technologies Blue.svg` + `.png` (copy nguyên, không convert).
 
 ```bash
-# Cách 1 (khuyến nghị): menu tương tác — chọn .deb rồi PATCH / MINOR / MAJOR
+# Menu — chọn .deb rồi PATCH / MINOR / MAJOR (tự build deploy/ nếu thiếu)
 ./scripts/build.sh
-# Hoặc không tương tác: ./scripts/build.sh deb patch
+# Hoặc: ./scripts/build.sh deb patch
+
 # Tách bước:
 # uv run python scripts/bump_version.py bump patch
-# ./scripts/build_deploy_venv.sh && ./scripts/build_deb.sh deploy
-
-# Cách 2: Nuitka / pyside6-deploy (nhỏ hơn; cần Python 3.13 + patchelf hệ thống)
-pyside6-rcc resources/resources.qrc -o src/central_logger/resources_rc.py
-uv run python scripts/bump_version.py bump patch
-pyside6-deploy src/central_logger/main.py
-./scripts/build_deb.sh deploy
+# ./scripts/build_deploy_linux.sh && ./scripts/build_deb.sh deploy
 
 sudo apt install ./dist/central-logger-app_*_amd64.deb
 ```
+
+Cần `patchelf` trên máy build (`sudo apt install patchelf`). Nếu Nuitka lỗi QML plugin, thử Python 3.13.
 
 App cài tại `/opt/central-logger/`, lệnh `central-logger`, shortcut trong menu ứng dụng.
 
@@ -300,7 +296,7 @@ uv run python scripts/bump_version.py show
 
 Vẫn hỗ trợ dòng lệnh: `./scripts/build.sh deb patch`, `.\scripts\build.ps1 msi minor -DeployDir deploy`
 
-Chỉ tạo `deploy/` (không đóng gói): chọn mục 2 trong menu, hoặc `./scripts/build.sh deploy-venv`
+Chỉ tạo `deploy/` (không đóng gói): chọn mục 2 trong menu, hoặc `./scripts/build.sh deploy`
 
 Chi tiết đo hiệu năng / LOC: [`docs/perf-baseline.md`](docs/perf-baseline.md).
 

@@ -43,25 +43,25 @@ _prompt_bump() {
   esac
 }
 
+_has_deploy_executable() {
+  find "${ROOT}/deploy" -maxdepth 3 -type f -executable ! -name '*.so' 2>/dev/null | grep -q .
+}
+
 _do_deb() {
   if [[ $# -eq 0 ]]; then
     _prompt_bump || return 1
   else
     _bump_version "$1"
   fi
-  if [[ ! -x "${ROOT}/deploy/central-logger" ]]; then
-    echo "No deploy/ — running build_deploy_venv.sh..."
-    "${ROOT}/scripts/build_deploy_venv.sh"
+  if ! _has_deploy_executable; then
+    echo "No deploy/ — running build_deploy_linux.sh..."
+    "${ROOT}/scripts/build_deploy_linux.sh"
   fi
   "${ROOT}/scripts/build_deb.sh" "${ROOT}/deploy"
 }
 
-_do_deploy_venv() {
-  "${ROOT}/scripts/build_deploy_venv.sh"
-}
-
-_do_deploy_nuitka() {
-  "${ROOT}/scripts/build_deploy_nuitka_linux.sh"
+_do_deploy() {
+  "${ROOT}/scripts/build_deploy_linux.sh"
 }
 
 _show_menu() {
@@ -73,22 +73,20 @@ _show_menu() {
   echo "========================================"
   echo ""
   echo "  1) Build .deb (Ubuntu package)"
-  echo "  2) Build deploy/ only (venv, no .deb)"
-  echo "  3) Build deploy/ via Nuitka (pyside6-deploy)"
+  echo "  2) Build deploy/ only (Nuitka / pyside6-deploy)"
   echo "  0) Exit"
   echo ""
   local choice
-  read -rp "Select option [0-3]: " choice
+  read -rp "Select option [0-2]: " choice
   case "${choice}" in
     1) _do_deb ;;
-    2) _do_deploy_venv ;;
-    3) _do_deploy_nuitka ;;
+    2) _do_deploy ;;
     0) echo "Bye." ;;
     *) echo "Invalid choice." >&2; return 1 ;;
   esac
 }
 
-# Non-interactive: ./scripts/build.sh deb patch | deploy-venv | deploy-nuitka
+# Non-interactive: ./scripts/build.sh deb patch | deploy
 if [[ $# -gt 0 ]]; then
   CMD="${1}"
   BUMP="${2:-}"
@@ -101,14 +99,17 @@ if [[ $# -gt 0 ]]; then
       fi
       _do_deb "${BUMP}"
       ;;
-    deploy-venv) _do_deploy_venv ;;
-    deploy-nuitka) _do_deploy_nuitka ;;
+    deploy|deploy-nuitka) _do_deploy ;;
+    deploy-venv)
+      echo "deploy-venv removed; use: $0 deploy" >&2
+      exit 1
+      ;;
     msi)
       echo "MSI: run .\\scripts\\build.ps1 on Windows." >&2
       exit 1
       ;;
     *)
-      echo "Usage: $0  OR  $0 {deb major|minor|patch|deploy-venv|deploy-nuitka}" >&2
+      echo "Usage: $0  OR  $0 {deb major|minor|patch|deploy}" >&2
       exit 1
       ;;
   esac

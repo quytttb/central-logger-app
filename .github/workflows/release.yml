@@ -115,7 +115,7 @@ jobs:
             libzbar0
 
       - name: Build deploy/ (pyside6-deploy / Nuitka)
-        run: ./scripts/build_deploy_nuitka_linux.sh
+        run: ./scripts/build_deploy_linux.sh
 
       - name: Build .deb package
         run: ./scripts/build_deb.sh deploy

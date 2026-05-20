@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Linux deploy via pyside6-deploy / Nuitka (standalone → deploy/).
-# Used by release CI and: ./scripts/build.sh deploy-nuitka
+# Mirror of scripts/build_deploy_windows.ps1. Used by CI Release and ./scripts/build.sh deploy
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
