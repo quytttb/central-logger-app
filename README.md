@@ -38,6 +38,8 @@ central-logger-app/
 ├── scripts/
 │   ├── build.sh              # Linux: menu .deb + SemVer bump
 │   ├── build.ps1             # Windows: menu MSI + SemVer bump
+│   ├── deploy.sh             # Linux: menu git tag/push → GitHub Release
+│   ├── deploy.ps1            # Windows: menu git tag/push → GitHub Release
 │   ├── build_deb.sh          # .deb từ thư mục deploy
 │   ├── build_deploy_venv.sh  # deploy/ venv (Linux .deb)
 │   ├── build_msi.ps1         # .msi (Windows, cần WiX)
@@ -48,7 +50,9 @@ central-logger-app/
 ├── packaging/windows/        # WiX Product.wxs
 ├── docs/perf-baseline.md
 ├── tests/
-└── .github/workflows/ci.yml
+└── .github/workflows/
+    ├── ci.yml
+    └── release.yml           # tag v*.*.* → build .deb + .msi → GitHub Release
 ```
 
 ## Quickstart trên Ubuntu
@@ -168,6 +172,38 @@ Tham khảo `pysidedeploy.spec` ở **root repo** (`icon` / `python_path` để 
 | Ubuntu | `dist/central-logger-app_<ver>_amd64.deb` | `sudo apt install ./...deb` |
 | Windows (portable) | `CentralLogger-<ver>-win64.zip` (thư mục `deploy\`) | giải nén, chạy `CentralLogger.exe` — **không cần WiX** |
 | Windows (MSI) | `dist/CentralLogger-<ver>-win64.msi` | double-click hoặc `msiexec /i` — cần WiX khi build |
+
+### Phát hành qua GitHub (CI/CD — khuyến nghị)
+
+Workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) chạy khi **push tag** `vMAJOR.MINOR.PATCH` (vd. `v0.2.0`): build `.deb` trên Ubuntu và `.msi` trên Windows, rồi tạo **GitHub Release** đính kèm cả hai file.
+
+**Không cần nhớ lệnh git** — dùng menu deploy (tách khỏi build local):
+
+| Platform | Chạy |
+|----------|------|
+| Ubuntu | `./scripts/deploy.sh` |
+| Windows | `.\scripts\deploy.ps1` |
+
+Menu: bump version → commit → tag → push `origin` (option **1**), hoặc từng bước (2–5), xem trạng thái (6), cheat sheet (7).
+
+```bash
+# Ubuntu — phát hành đầy đủ một lần (PATCH)
+./scripts/deploy.sh release patch
+```
+
+```powershell
+# Windows — tương tự
+.\scripts\deploy.ps1 release patch
+```
+
+**Re-build Release** khi tag đã có (không push git lại): GitHub → **Actions** → workflow **Release** → **Run workflow** → nhập tag (vd. `v0.2.0`).
+
+| Script | Việc |
+|--------|------|
+| `build.sh` / `build.ps1` | Đóng gói **trên máy bạn** (.deb / MSI local) |
+| `deploy.sh` / `deploy.ps1` | **Git + tag + push** → CI build Release trên GitHub |
+
+Build local vẫn dùng `./scripts/build.sh` hoặc `.\scripts\build.ps1` (xem các mục bên dưới).
 
 ### MSI và `.exe` — khác nhau thế nào?
 
