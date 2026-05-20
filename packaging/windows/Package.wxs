@@ -30,7 +30,7 @@
   <Fragment>
     <ComponentGroup Id="DeployFiles" Directory="INSTALLFOLDER">
       <Files Include="!(bindpath.DeployDir)\**">
-        <Exclude Path="!(bindpath.DeployDir)\**\_nuitka_package.marker" />
+        <Exclude Files="!(bindpath.DeployDir)\**\_nuitka_package.marker" />
       </Files>
     </ComponentGroup>
 
