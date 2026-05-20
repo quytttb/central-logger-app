@@ -2,6 +2,7 @@
 
 Requires QApplication (not QGuiApplication alone) for QSystemTrayIcon.
 """
+
 from __future__ import annotations
 
 import logging

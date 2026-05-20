@@ -1,4 +1,5 @@
 """Install root resolution — deb deploy (CENTRAL_LOGGER_APP_ROOT) vs editable dev."""
+
 from __future__ import annotations
 
 import os

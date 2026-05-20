@@ -1,4 +1,5 @@
 """Asyncio thread + ModbusManager lifecycle and snapshot handling."""
+
 from __future__ import annotations
 
 import asyncio
@@ -70,9 +71,7 @@ class ModbusBridge:
                 for task in pending:
                     task.cancel()
                 if pending:
-                    loop.run_until_complete(
-                        asyncio.gather(*pending, return_exceptions=True)
-                    )
+                    loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
                 loop.close()
 
         self._thread = threading.Thread(target=runner, name="modbus-loop", daemon=True)

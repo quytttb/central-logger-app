@@ -4,6 +4,7 @@ Phát signal về Qt main thread thông qua callbacks (do controller cấu hình
 hoặc trực tiếp tới `LoggerListModel`. Manager chính nó *không* phụ thuộc Qt
 để dễ unit test bằng pytest-asyncio.
 """
+
 from __future__ import annotations
 
 import asyncio

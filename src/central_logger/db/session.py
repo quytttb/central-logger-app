@@ -1,4 +1,5 @@
 """SQLModel engine & session helpers - SQLite mặc định, có thể override qua env."""
+
 from __future__ import annotations
 
 import os
@@ -95,16 +96,14 @@ def _migrate_poll_interval_seconds(engine) -> None:
             text("ALTER TABLE logger_info ADD COLUMN poll_interval_s INTEGER NOT NULL DEFAULT 2")
         )
         if "poll_interval_ms" in existing:
-            conn.execute(
-                text(
-                    """
+            conn.execute(text("""
                     UPDATE logger_info
                     SET poll_interval_s = MAX(1, poll_interval_ms / 1000)
-                    """
-                )
-            )
+                    """))
         else:
-            conn.execute(text("UPDATE logger_info SET poll_interval_s = 2 WHERE poll_interval_s < 1"))
+            conn.execute(
+                text("UPDATE logger_info SET poll_interval_s = 2 WHERE poll_interval_s < 1")
+            )
 
 
 def _ensure_sensor_reading_indexes(engine) -> None:

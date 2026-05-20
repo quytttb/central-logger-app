@@ -1,4 +1,5 @@
 """QAbstractListModel for dashboard recent events (replaces JSON pull in QML)."""
+
 from __future__ import annotations
 
 import json

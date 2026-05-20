@@ -1,4 +1,5 @@
 """REST scheduling, cache, and UI signal emission for logger remote config."""
+
 from __future__ import annotations
 
 import asyncio
@@ -113,9 +114,7 @@ class RestCoordinator:
                 ),
             )
             return
-        asyncio.run_coroutine_threadsafe(
-            self._run_rest(logger_id, endpoint, kind, **kwargs), loop
-        )
+        asyncio.run_coroutine_threadsafe(self._run_rest(logger_id, endpoint, kind, **kwargs), loop)
 
     async def probe_edge(
         self, host: str, api_port: int, token: str, api_base_url: str | None

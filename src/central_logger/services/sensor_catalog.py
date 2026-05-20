@@ -1,4 +1,5 @@
 """Merge REST sensor catalog with Modbus live readings for UI."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -44,15 +45,17 @@ def extract_sensors_from_readings_raw(raw: dict[str, Any] | None) -> list[dict[s
         sid = item.get("sensor_id", item.get("id"))
         if sid is None:
             continue
-        out.append({
-            "sensor_id": int(sid),
-            "sensor_type": str(item.get("sensor_type", "")),
-            "value": item.get("value"),
-            "valid": bool(item.get("valid", False)),
-            "status": str(item.get("status", "")),
-            "is_alarm": bool(item.get("is_alarm", False)),
-            "alarm_type": str(item.get("alarm_type", "")),
-        })
+        out.append(
+            {
+                "sensor_id": int(sid),
+                "sensor_type": str(item.get("sensor_type", "")),
+                "value": item.get("value"),
+                "valid": bool(item.get("valid", False)),
+                "status": str(item.get("status", "")),
+                "is_alarm": bool(item.get("is_alarm", False)),
+                "alarm_type": str(item.get("alarm_type", "")),
+            }
+        )
     return out
 
 
@@ -239,34 +242,26 @@ def merge_sensor_rows(
             row = _row_from_catalog(c, modbus_idx.get(c["sensor_id"]))
             row = _apply_rest_to_row(row, rest_idx.get(c["sensor_id"]))
             rows.append(
-                _finalize_row(
-                    row, logger_online=logger_online, logger_polling=logger_polling
-                )
+                _finalize_row(row, logger_online=logger_online, logger_polling=logger_polling)
             )
         seen = {c["sensor_id"] for c in catalog}
         for sid, m in sorted(modbus_idx.items()):
             if sid not in seen:
                 row = _apply_rest_to_row(_row_from_modbus_only(m), rest_idx.get(sid))
                 rows.append(
-                    _finalize_row(
-                        row, logger_online=logger_online, logger_polling=logger_polling
-                    )
+                    _finalize_row(row, logger_online=logger_online, logger_polling=logger_polling)
                 )
         rows.sort(key=lambda r: r["sensor_id"])
         return rows
 
     for m in modbus_sensors:
         row = _apply_rest_to_row(_row_from_modbus_only(m), rest_idx.get(int(m["sensor_id"])))
-        rows.append(
-            _finalize_row(row, logger_online=logger_online, logger_polling=logger_polling)
-        )
+        rows.append(_finalize_row(row, logger_online=logger_online, logger_polling=logger_polling))
     rows.sort(key=lambda r: r["sensor_id"])
     return rows
 
 
-def display_name_for_sensor(
-    catalog: list[dict[str, Any]] | None, sensor_id: int
-) -> str:
+def display_name_for_sensor(catalog: list[dict[str, Any]] | None, sensor_id: int) -> str:
     """Label for charts — prefer catalog name."""
     if catalog:
         for c in catalog:

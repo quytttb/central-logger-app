@@ -1,4 +1,5 @@
 """Data retention — purge old sensor readings and system events."""
+
 from __future__ import annotations
 
 import logging
@@ -50,13 +51,11 @@ def count_rows_older_than(days: int) -> int:
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     with Session(get_engine()) as session:
         readings = session.exec(
-            select(func.count()).select_from(SensorReading).where(
-                SensorReading.recorded_at < cutoff
-            )
+            select(func.count())
+            .select_from(SensorReading)
+            .where(SensorReading.recorded_at < cutoff)
         ).one()
         events = session.exec(
-            select(func.count()).select_from(SystemEvent).where(
-                SystemEvent.created_at < cutoff
-            )
+            select(func.count()).select_from(SystemEvent).where(SystemEvent.created_at < cutoff)
         ).one()
         return int(readings) + int(events)

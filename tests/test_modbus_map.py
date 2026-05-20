@@ -1,4 +1,5 @@
 """Unit tests cho parser Modbus Map v1."""
+
 from __future__ import annotations
 
 import struct

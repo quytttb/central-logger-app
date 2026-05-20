@@ -4,6 +4,7 @@ Khởi tạo QApplication (cần cho QSystemTrayIcon), đăng ký QML types qua 
 central_logger.viewmodels (decorators chạy khi import), nạp Material Light từ
 qtquickcontrols2.conf, và load ui/main.qml.
 """
+
 from __future__ import annotations
 
 import logging
@@ -73,7 +74,12 @@ def _install_qml_property_shadow_log_filter() -> None:
     def _handler(mode: QtMsgType, _context: object, message: str) -> None:
         if "overrides a member of the base object" in message:
             return
-        if mode in (QtMsgType.QtInfoMsg, QtMsgType.QtWarningMsg, QtMsgType.QtCriticalMsg, QtMsgType.QtFatalMsg):
+        if mode in (
+            QtMsgType.QtInfoMsg,
+            QtMsgType.QtWarningMsg,
+            QtMsgType.QtCriticalMsg,
+            QtMsgType.QtFatalMsg,
+        ):
             print(message, file=sys.stderr, flush=True)
 
     qInstallMessageHandler(_handler)

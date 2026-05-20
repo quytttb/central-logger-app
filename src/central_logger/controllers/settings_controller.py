@@ -1,4 +1,5 @@
 """Controller cho `AppSettings` — load/save row id=1 và expose properties tới QML."""
+
 from __future__ import annotations
 
 import logging

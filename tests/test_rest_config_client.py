@@ -1,4 +1,5 @@
 """Tests cho LoggerConfigClient — mock transport bằng httpx.MockTransport."""
+
 from __future__ import annotations
 
 import json
@@ -115,9 +116,7 @@ async def test_apply_config_validation_400(monkeypatch, endpoint):
         "central_logger.services.rest_config_client.httpx.AsyncClient",
         _mock_client(handler),
     )
-    res = await LoggerConfigClient(endpoint).apply_config(
-        expected_revision=6, config={}
-    )
+    res = await LoggerConfigClient(endpoint).apply_config(expected_revision=6, config={})
     assert not res.ok and res.http_status == 400
     assert res.errors[0]["field"] == "config.modbus_tcp_bind"
 

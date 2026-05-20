@@ -1,4 +1,5 @@
 """Decode provisioning QR images for pairing Central with a data-logger (LAN)."""
+
 from __future__ import annotations
 
 import json

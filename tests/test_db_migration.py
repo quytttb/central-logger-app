@@ -1,4 +1,5 @@
 """Test migration nhẹ cho LoggerInfo: thêm cột mới vào DB cũ."""
+
 from __future__ import annotations
 
 from sqlalchemy import inspect, text
@@ -12,9 +13,7 @@ def test_add_missing_columns_on_legacy_table(tmp_path):
     engine = create_engine(f"sqlite:///{db_path}")
     # Tạo bảng cũ (v0) thiếu các column REST.
     with engine.begin() as conn:
-        conn.execute(
-            text(
-                """
+        conn.execute(text("""
                 CREATE TABLE logger_info (
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -27,9 +26,7 @@ def test_add_missing_columns_on_legacy_table(tmp_path):
                     note TEXT,
                     created_at TEXT
                 )
-                """
-            )
-        )
+                """))
 
     _ensure_logger_info_columns(engine)
 
@@ -43,9 +40,7 @@ def test_migrate_poll_interval_seconds(tmp_path):
     db_path = tmp_path / "legacy_poll.db"
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.begin() as conn:
-        conn.execute(
-            text(
-                """
+        conn.execute(text("""
                 CREATE TABLE logger_info (
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -56,12 +51,8 @@ def test_migrate_poll_interval_seconds(tmp_path):
                     timeout_s REAL NOT NULL DEFAULT 2.0,
                     enabled BOOLEAN NOT NULL DEFAULT 1
                 )
-                """
-            )
-        )
-        conn.execute(
-            text("INSERT INTO logger_info (id, name, host) VALUES (1, 'L', '127.0.0.1')")
-        )
+                """))
+        conn.execute(text("INSERT INTO logger_info (id, name, host) VALUES (1, 'L', '127.0.0.1')"))
     _migrate_poll_interval_seconds(engine)
     insp = inspect(engine)
     cols = {c["name"] for c in insp.get_columns("logger_info")}

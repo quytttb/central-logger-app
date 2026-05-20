@@ -1,4 +1,5 @@
 """Tests for data retention purge and sensor_reading indexes."""
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone

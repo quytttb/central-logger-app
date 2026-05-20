@@ -4,6 +4,7 @@
     import CentralLogger.Core 1.0
     Label { text: AppState.statusText }
 """
+
 from __future__ import annotations
 
 from PySide6.QtCore import Property, QObject, Signal, Slot

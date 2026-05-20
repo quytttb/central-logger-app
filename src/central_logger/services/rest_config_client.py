@@ -14,6 +14,7 @@ Contract (theo `docs/rest-config-contract-v1`):
 Mọi method đều **async** (dùng `httpx.AsyncClient`); chạy bên trong asyncio loop
 của Modbus thread thông qua `run_coroutine_threadsafe` từ Qt.
 """
+
 from __future__ import annotations
 
 import logging
@@ -71,9 +72,7 @@ class ConfigResponse:
     def error_summary(self) -> str:
         if not self.errors:
             return self.message or ""
-        return "; ".join(
-            f"{e.get('field', '?')}: {e.get('message', '')}" for e in self.errors
-        )
+        return "; ".join(f"{e.get('field', '?')}: {e.get('message', '')}" for e in self.errors)
 
 
 def _parse_response(resp: httpx.Response) -> ConfigResponse:

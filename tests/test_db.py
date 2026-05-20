@@ -1,4 +1,5 @@
 """Test DB models bằng SQLite in-memory."""
+
 from __future__ import annotations
 
 import pytest
@@ -22,11 +23,7 @@ def test_insert_logger_and_reading(engine):
         session.refresh(logger)
         assert logger.id is not None
 
-        session.add(
-            models.SensorReading(
-                logger_id=logger.id, sensor_id=1, value=12.3, valid=True
-            )
-        )
+        session.add(models.SensorReading(logger_id=logger.id, sensor_id=1, value=12.3, valid=True))
         session.commit()
 
         rows = session.exec(select(models.SensorReading)).all()

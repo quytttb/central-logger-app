@@ -1,4 +1,5 @@
 """Chart JSON builders — SQL aggregation where possible."""
+
 from __future__ import annotations
 
 import json
@@ -56,8 +57,7 @@ def build_ingestion_chart_24h(*, bucket_minutes: int = INGESTION_BUCKET_MINUTES)
 
         try:
             rows = session.execute(
-                text(
-                    """
+                text("""
                     SELECT
                         CAST((strftime('%s', recorded_at) - :start_epoch) / :bucket_sec AS INTEGER) AS bidx,
                         COUNT(*) AS readings,
@@ -65,8 +65,7 @@ def build_ingestion_chart_24h(*, bucket_minutes: int = INGESTION_BUCKET_MINUTES)
                     FROM sensor_reading
                     WHERE recorded_at >= :start_utc
                     GROUP BY bidx
-                    """
-                ),
+                    """),
                 {
                     "start_epoch": start_epoch,
                     "bucket_sec": bucket_seconds,
@@ -317,9 +316,7 @@ def build_sensor_trending_poll_chart(
             ensure_ascii=False,
         )
 
-    labels, series = build_poll_trending_series(
-        logger_id, points, sensor_catalog=sensor_catalog
-    )
+    labels, series = build_poll_trending_series(logger_id, points, sensor_catalog=sensor_catalog)
     return json.dumps(
         {
             "mode": "poll",

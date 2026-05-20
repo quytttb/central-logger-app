@@ -1,4 +1,5 @@
 """Tests for SQL-backed chart query helpers."""
+
 from __future__ import annotations
 
 import json

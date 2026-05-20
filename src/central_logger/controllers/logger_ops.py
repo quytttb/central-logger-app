@@ -1,4 +1,5 @@
 """Logger CRUD — DB persistence separated from DashboardController."""
+
 from __future__ import annotations
 
 import json

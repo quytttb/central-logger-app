@@ -1,4 +1,5 @@
 """Tests for REST catalog + Modbus sensor merge."""
+
 from __future__ import annotations
 
 from central_logger.services.sensor_catalog import (
@@ -43,10 +44,12 @@ def test_parse_catalog_skips_attached_children():
 
 
 def test_merge_excludes_attached_from_catalog():
-    catalog = parse_catalog_from_rest([
-        {"id": 1, "name": "Temp", "sensor_type": "ANALOG"},
-        {"id": 10, "name": "child DI", "sensor_type": "DI", "parent_id": 1},
-    ])
+    catalog = parse_catalog_from_rest(
+        [
+            {"id": 1, "name": "Temp", "sensor_type": "ANALOG"},
+            {"id": 10, "name": "child DI", "sensor_type": "DI", "parent_id": 1},
+        ]
+    )
     assert len(catalog) == 1
     rows = merge_sensor_rows(catalog, [])
     assert len(rows) == 1
@@ -65,10 +68,12 @@ def test_parse_catalog_from_rest():
 
 
 def test_merge_catalog_with_modbus_overlay():
-    catalog = parse_catalog_from_rest([
-        {"id": 1, "name": "Temp", "unit": "C", "sensor_type": "ANALOG", "active": True},
-        {"id": 2, "name": "Door", "unit": "", "sensor_type": "DI", "active": True},
-    ])
+    catalog = parse_catalog_from_rest(
+        [
+            {"id": 1, "name": "Temp", "unit": "C", "sensor_type": "ANALOG", "active": True},
+            {"id": 2, "name": "Door", "unit": "", "sensor_type": "DI", "active": True},
+        ]
+    )
     modbus = [
         {"sensor_id": 1, "value": 25.5, "valid": True, "alarm": False, "stale": False},
     ]
@@ -81,9 +86,11 @@ def test_merge_catalog_with_modbus_overlay():
 
 
 def test_merge_inactive_in_catalog():
-    catalog = parse_catalog_from_rest([
-        {"id": 3, "name": "Old", "sensor_type": "ANALOG", "active": False},
-    ])
+    catalog = parse_catalog_from_rest(
+        [
+            {"id": 3, "name": "Old", "sensor_type": "ANALOG", "active": False},
+        ]
+    )
     rows = merge_sensor_rows(catalog, [])
     assert len(rows) == 1
     assert rows[0]["active"] is False
@@ -103,10 +110,12 @@ def test_normalize_missing_name_uses_type():
 
 
 def test_merge_rest_di_do_values():
-    catalog = parse_catalog_from_rest([
-        {"id": 1, "name": "Temp", "sensor_type": "ANALOG", "active": True},
-        {"id": 3, "name": "Buzzer", "sensor_type": "DO", "active": True},
-    ])
+    catalog = parse_catalog_from_rest(
+        [
+            {"id": 1, "name": "Temp", "sensor_type": "ANALOG", "active": True},
+            {"id": 3, "name": "Buzzer", "sensor_type": "DO", "active": True},
+        ]
+    )
     modbus = [
         {"sensor_id": 1, "value": 22.0, "valid": True, "alarm": False, "stale": False},
     ]
@@ -155,9 +164,11 @@ def test_extract_sensors_from_readings_raw():
 
 
 def test_di_do_wait_without_rest():
-    catalog = parse_catalog_from_rest([
-        {"id": 2, "name": "DI1", "sensor_type": "DI", "active": True},
-    ])
+    catalog = parse_catalog_from_rest(
+        [
+            {"id": 2, "name": "DI1", "sensor_type": "DI", "active": True},
+        ]
+    )
     rows = merge_sensor_rows(catalog, [], None)
     assert rows[0]["value"] is None
     assert rows[0]["display_status"] == "WAIT"

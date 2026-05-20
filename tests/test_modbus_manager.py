@@ -1,4 +1,5 @@
 """Integration test cho ModbusManager + LoggerModbusClient với fake pymodbus client."""
+
 from __future__ import annotations
 
 import asyncio
@@ -104,9 +105,7 @@ async def test_manager_invokes_callback(monkeypatch):
         received.append((cfg.id, outcome.ok))
 
     manager = ModbusManager(on_snapshot=on_snap)
-    manager.add_logger(
-        LoggerConfig(id=7, name="x", host="h", poll_interval_s=1, timeout_s=0.5)
-    )
+    manager.add_logger(LoggerConfig(id=7, name="x", host="h", poll_interval_s=1, timeout_s=0.5))
     manager.start()
     # đợi vài chu kỳ
     await asyncio.sleep(0.2)

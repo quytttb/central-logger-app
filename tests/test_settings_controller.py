@@ -1,4 +1,5 @@
 """Tests cho SettingsController — load defaults, save, reload."""
+
 from __future__ import annotations
 
 import pytest

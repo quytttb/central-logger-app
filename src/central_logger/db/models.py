@@ -1,4 +1,5 @@
 """SQLModel models cho Central Logger App."""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone

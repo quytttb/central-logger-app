@@ -1,4 +1,5 @@
 """Tests for native lib path helpers (no DLL required on Linux CI)."""
+
 from __future__ import annotations
 
 import sys

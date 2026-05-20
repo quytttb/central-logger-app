@@ -1,4 +1,5 @@
 """Tests cho chart JSON helpers và DashboardController chart slots."""
+
 from __future__ import annotations
 
 import json

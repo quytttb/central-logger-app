@@ -1,4 +1,5 @@
 """Tests cho LoggerListModel (QAbstractListModel)."""
+
 from __future__ import annotations
 
 import pytest

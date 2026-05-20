@@ -1,4 +1,5 @@
 """Per-logger sensor caches, REST/Modbus merge, poll history for charts."""
+
 from __future__ import annotations
 
 import json
@@ -14,6 +15,7 @@ from central_logger.services import now_iso
 from central_logger.services.sensor_catalog import merge_sensor_rows
 
 log = logging.getLogger(__name__)
+
 
 class SensorState:
     def __init__(
@@ -149,9 +151,7 @@ class SensorState:
         now = datetime.now(timezone.utc)
         label = now.astimezone(tz).strftime("%H:%M:%S")
         values = {int(s["sensor_id"]): float(s["value"]) for s in sensors}
-        hist = self.poll_history.setdefault(
-            logger_id, deque(maxlen=chart_queries.POLL_HISTORY_MAX)
-        )
+        hist = self.poll_history.setdefault(logger_id, deque(maxlen=chart_queries.POLL_HISTORY_MAX))
         hist.append({"label": label, "values": values})
         self.poll_trending_json.pop(logger_id, None)
         self._on_invalidate_poll(logger_id)

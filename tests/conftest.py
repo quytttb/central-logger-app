@@ -1,4 +1,5 @@
 """Cấu hình chung cho pytest - đảm bảo Qt chạy headless trên CI."""
+
 from __future__ import annotations
 
 import os

@@ -1,4 +1,5 @@
 """Controller cầu nối UI <-> ModbusManager <-> Database (facade cho QML)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -99,7 +100,9 @@ class DashboardController(QObject):
         self._retention_timer = QTimer(self)
         self._retention_timer.setInterval(3_600_000)
         self._retention_timer.timeout.connect(self.purgeOldData)
-        self._snapshotForUi.connect(self._modbus.apply_snapshot_ui, Qt.ConnectionType.QueuedConnection)
+        self._snapshotForUi.connect(
+            self._modbus.apply_snapshot_ui, Qt.ConnectionType.QueuedConnection
+        )
         self._restResultForUi.connect(self._on_rest_result, Qt.ConnectionType.QueuedConnection)
         self._probeForUi.connect(self._on_probe_result, Qt.ConnectionType.QueuedConnection)
 

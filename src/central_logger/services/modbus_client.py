@@ -5,6 +5,7 @@ Tách rõ:
     - TCP connected: client.connected
     - Modbus PDU OK: response.isError() False
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -131,9 +132,7 @@ class LoggerModbusClient:
         if not await self.connect():
             return ReadOutcome(ok=False, error="TCP connect failed", tcp_connected=False)
         try:
-            header_regs = await self._read_holding(
-                mmap.HR_VERSION, mmap.HEADER_REGISTERS
-            )
+            header_regs = await self._read_holding(mmap.HR_VERSION, mmap.HEADER_REGISTERS)
             header = mmap.parse_header(header_regs)
 
             if not header.is_supported:
@@ -146,9 +145,7 @@ class LoggerModbusClient:
             sensors: list = []
             if header.sensor_count > 0:
                 count_regs = mmap.sensor_array_register_count(header.sensor_count)
-                sensor_regs = await self._read_holding(
-                    mmap.HR_SENSOR_BLOCK_START, count_regs
-                )
+                sensor_regs = await self._read_holding(mmap.HR_SENSOR_BLOCK_START, count_regs)
                 sensors = mmap.parse_sensor_array(sensor_regs, header.sensor_count)
 
             return ReadOutcome(

@@ -1,4 +1,5 @@
 """System event log — DB writes with maintenance-mode filter."""
+
 from __future__ import annotations
 
 import logging

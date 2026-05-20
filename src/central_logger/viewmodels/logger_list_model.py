@@ -1,4 +1,5 @@
 """QAbstractListModel cho danh sách Data Logger - hiển thị trong GridView/ListView."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -80,7 +81,7 @@ class LoggerItem:
 class LoggerListModel(QAbstractListModel):
     """Mô hình danh sách logger; dùng trong QML như:
 
-        ListView { model: LoggerListModel { id: loggers } }
+    ListView { model: LoggerListModel { id: loggers } }
     """
 
     countChanged = Signal()

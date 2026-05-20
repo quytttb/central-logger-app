@@ -13,6 +13,7 @@ Layout (holding registers, PDU 0-based):
 
 Float endian cố định **ABCD** trên TCP (không theo data_format của RTU).
 """
+
 from __future__ import annotations
 
 import struct

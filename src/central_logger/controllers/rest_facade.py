@@ -1,4 +1,5 @@
 """REST endpoint helpers — shared by DashboardController and probes."""
+
 from __future__ import annotations
 
 from central_logger.db.models import LoggerInfo
