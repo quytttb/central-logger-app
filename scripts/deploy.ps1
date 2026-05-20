@@ -133,7 +133,7 @@ function Invoke-DoBump {
 function Invoke-DoCommit {
     $ver = Get-ProjectVersion
     $tag = "v$ver"
-    $msg = "chore: release $tag"
+    $msg = "chore(release): release $tag"
     Show-UnexpectedDirtyWarning
     git diff --quiet -- pyproject.toml 2>$null
     $unstaged = $LASTEXITCODE -eq 0
@@ -197,7 +197,7 @@ function Invoke-DoRelease {
         return
     }
     Add-ReleaseFiles
-    git commit -m "chore: release $tag"
+    git commit -m "chore(release): release $tag"
     if ($LASTEXITCODE -ne 0) {
         throw "Commit that bai (co the khong co thay doi?)."
     }
@@ -255,7 +255,7 @@ function Show-Cheatsheet {
 
   # Tung buoc
   python scripts\bump_version.py bump patch
-  git add pyproject.toml; git commit -m "chore: release $tag"
+  git add pyproject.toml; git commit -m "chore(release): release $tag"
   git tag -a $tag -m "Release $tag"
   git push $Remote HEAD
   git push $Remote $tag

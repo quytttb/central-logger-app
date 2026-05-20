@@ -136,7 +136,7 @@ _do_commit() {
   local ver tag msg
   ver="$(_current_version)"
   tag="$(_tag_name)"
-  msg="chore: release ${tag}"
+  msg="chore(release): release ${tag}"
   _git_unexpected_dirty_warning
   if git diff --quiet -- pyproject.toml uv.lock 2>/dev/null && \
      git diff --cached --quiet -- pyproject.toml uv.lock 2>/dev/null; then
@@ -201,7 +201,7 @@ _do_release() {
     return 1
   fi
   _stage_release_files
-  git commit -m "chore: release ${tag}" || {
+  git commit -m "chore(release): release ${tag}" || {
     echo "Commit thất bại (có thể không có thay đổi?)." >&2
     return 1
   }
@@ -260,7 +260,7 @@ _show_cheatsheet() {
 
   # Từng bước
   uv run python scripts/bump_version.py bump patch
-  git add pyproject.toml && git commit -m "chore: release ${tag}"
+  git add pyproject.toml && git commit -m "chore(release): release ${tag}"
   git tag -a ${tag} -m "Release ${tag}"
   git push ${REMOTE} HEAD
   git push ${REMOTE} ${tag}
