@@ -117,11 +117,16 @@ python -m pip install -U pip
 pip install -e ".[build]"
 ```
 
-**QR scan (tùy chọn):** stage ZBar DLL x64 — xem [`resources/native/windows/README.md`](resources/native/windows/README.md).
+**QR scan (tùy chọn):** chỉ cần nếu dùng **Scan QR…** trong Add Logger. Bỏ qua bước này nếu không cần QR — build portable vẫn chạy bình thường.
+
+Cài ZBar x64 (ví dụ tải từ [ZBar trên SourceForge](https://sourceforge.net/projects/zbar/files/)), tìm thư mục chứa `libzbar-64.dll`, rồi thay **đường dẫn thật** (không dùng `C:\path\to\...` trong ví dụ):
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\stage_zbar_windows.ps1 -Source "C:\path\to\zbar\bin"
+# Ví dụ — sửa cho đúng máy bạn:
+powershell -ExecutionPolicy Bypass -File scripts\stage_zbar_windows.ps1 -Source "C:\Program Files\ZBar\bin"
 ```
+
+Chi tiết: [`resources/native/windows/README.md`](resources/native/windows/README.md).
 
 **Build portable (`deploy\`):**
 
