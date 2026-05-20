@@ -76,11 +76,25 @@ $HeatExcludes = @(
 
 $HarvestWxs = Join-Path $ObjDir "Harvest.wxs"
 $HeatWin64Xslt = Join-Path $WxsDir "HeatWin64.xslt"
-$heatExcludeArgs = foreach ($item in $HeatExcludes) { "-x"; $item }
+$heatArgs = @(
+    "dir", $DeployDir,
+    "-cg", "HarvestedFiles",
+    "-dr", "INSTALLFOLDER",
+    "-gg", "-sfrag", "-srd", "-sreg", "-scom",
+    "-var", "var.DeployDir",
+    "-t", $HeatWin64Xslt,
+    "-out", $HarvestWxs
+)
+foreach ($item in $HeatExcludes) {
+    $heatArgs += "-x"
+    $heatArgs += $item
+}
 
 Invoke-WixStep -Label "heat harvest deploy/" -Command {
-    heat.exe dir $DeployDir -cg HarvestedFiles -dr INSTALLFOLDER -gg -sfrag -srd `
-        -sreg -scom @heatExcludeArgs -var var.DeployDir -t $HeatWin64Xslt -out $HarvestWxs
+    & heat.exe @heatArgs
+    if (Select-String -Path $HarvestWxs -Pattern 'CentralLogger\.exe' -Quiet) {
+        throw "Harvest.wxs still references CentralLogger.exe (exclude/XSLT failed)"
+    }
 }
 
 $ProductWxs = Join-Path $WxsDir "Product.wxs"

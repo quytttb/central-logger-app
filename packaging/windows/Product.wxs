@@ -24,7 +24,6 @@
     <Feature Id="ProductFeature" Title="Central Logger" Level="1">
       <ComponentRef Id="MainExecutable" />
       <ComponentGroupRef Id="HarvestedFiles" />
-      <ComponentRef Id="ApplicationShortcut" />
     </Feature>
 
     <Directory Id="TARGETDIR" Name="SourceDir">
@@ -39,17 +38,12 @@
     <DirectoryRef Id="INSTALLFOLDER">
       <Component Id="MainExecutable" Guid="*" Win64="yes">
         <File Id="CentralLoggerExe" Source="$(var.DeployDir)\CentralLogger.exe" KeyPath="yes" />
-      </Component>
-    </DirectoryRef>
-
-    <DirectoryRef Id="ApplicationProgramsFolder">
-      <Component Id="ApplicationShortcut" Guid="B2C3D4E5-F6A7-8901-BCDE-F12345678901" Win64="yes">
         <Shortcut Id="StartMenuShortcut"
+                  Directory="ApplicationProgramsFolder"
                   Name="Central Logger"
-                  Target="[INSTALLFOLDER]CentralLogger.exe"
+                  Target="[#CentralLoggerExe]"
                   WorkingDirectory="INSTALLFOLDER" />
         <RemoveFolder Id="CleanUpShortCut" Directory="ApplicationProgramsFolder" On="uninstall" />
-        <RegistryValue Root="HKLM" Key="Software\CentralLogger" Name="installed" Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </DirectoryRef>
   </Product>
