@@ -41,7 +41,8 @@ central-logger-app/
 │   ├── deploy.sh             # Linux: menu git tag/push → GitHub Release
 │   ├── deploy.ps1            # Windows: menu git tag/push → GitHub Release
 │   ├── build_deb.sh          # .deb từ thư mục deploy
-│   ├── build_deploy_venv.sh  # deploy/ venv (Linux .deb)
+│   ├── build_deploy_venv.sh  # deploy/ venv (Linux, build local)
+│   ├── build_deploy_nuitka_linux.sh  # deploy/ Nuitka (Linux, CI + build.sh)
 │   ├── build_msi.ps1         # .msi (Windows, cần WiX)
 │   ├── bump_version.py       # SemVer → pyproject.toml
 │   ├── stage_zbar_windows.ps1   # auto-download ZBar DLLs (Windows)
@@ -175,7 +176,7 @@ Tham khảo `pysidedeploy.spec` ở **root repo** (`icon` / `python_path` để 
 
 ### Phát hành qua GitHub (CI/CD — khuyến nghị)
 
-Workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) chạy khi **push tag** `vMAJOR.MINOR.PATCH` (vd. `v0.2.0`): build `.deb` trên Ubuntu và `.msi` trên Windows, rồi tạo **GitHub Release** đính kèm cả hai file.
+Workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) chạy khi **push tag** `vMAJOR.MINOR.PATCH` (vd. `v0.2.0`): build **Nuitka** trên cả hai runner (Ubuntu → `.deb`, Windows → `.msi`), rồi tạo **GitHub Release** đính kèm cả hai file.
 
 **Không cần nhớ lệnh git** — dùng menu deploy (tách khỏi build local):
 

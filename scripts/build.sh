@@ -61,10 +61,7 @@ _do_deploy_venv() {
 }
 
 _do_deploy_nuitka() {
-  uv run pyside6-rcc resources/resources.qrc -o src/central_logger/resources_rc.py
-  uv pip install patchelf 2>/dev/null || true
-  echo "Tip: use Python 3.13 and system patchelf if Nuitka fails on .a QML plugins."
-  uv run pyside6-deploy -c pysidedeploy.spec src/central_logger/main.py --mode standalone
+  "${ROOT}/scripts/build_deploy_nuitka_linux.sh"
 }
 
 _show_menu() {

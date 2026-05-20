@@ -57,11 +57,12 @@ jobs:
           echo "Release ${TAG} → version ${VERSION}"
 
   # ---------------------------------------------------------------------------
-  # Ubuntu: deploy venv + .deb
+  # Ubuntu: Nuitka deploy + .deb (đồng bộ với Windows)
   # ---------------------------------------------------------------------------
   build-deb:
     needs: prepare
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - name: Checkout tag
         uses: actions/checkout@v6
@@ -82,8 +83,8 @@ jobs:
           python-version: "3.12"
           enable-cache: true
 
-      - name: Install project dependencies
-        run: uv sync
+      - name: Install project dependencies (incl. Nuitka / ziglang)
+        run: uv sync --extra build
 
       - name: Sync version in pyproject.toml from git tag
         env:
@@ -102,19 +103,19 @@ jobs:
           print(f"pyproject.toml → {v}")
           PY
 
-      - name: Install system packages (Qt runtime + dpkg-deb)
+      - name: Install system packages (Nuitka build + Qt runtime + dpkg-deb)
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            dpkg-dev \
+            dpkg-dev patchelf gcc g++ \
             libegl1 libgl1 libxkbcommon0 libxkbcommon-x11-0 \
             libdbus-1-3 libfontconfig1 libxcb-cursor0 libxcb-icccm4 \
             libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 \
             libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xkb1 \
             libzbar0
 
-      - name: Build deploy/ (venv bundle)
-        run: ./scripts/build_deploy_venv.sh
+      - name: Build deploy/ (pyside6-deploy / Nuitka)
+        run: ./scripts/build_deploy_nuitka_linux.sh
 
       - name: Build .deb package
         run: ./scripts/build_deb.sh deploy
