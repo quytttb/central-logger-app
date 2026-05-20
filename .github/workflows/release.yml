@@ -142,6 +142,10 @@ jobs:
           ref: ${{ needs.prepare.outputs.ref }}
           fetch-depth: 1
 
+      - name: Avoid detached HEAD (cleaner logs)
+        shell: bash
+        run: git switch -C "release-${{ needs.prepare.outputs.version }}"
+
       - name: Verify tag exists
         shell: bash
         run: |
@@ -179,14 +183,13 @@ jobs:
           "@
           python -c $py
 
-      # Chocolatey may install WiX 3.11, 3.14, ... — resolve bin from heat.exe, not a fixed path.
+      # WiX 3.x may already be on the runner image — skip choco when heat.exe is present.
       - name: Install WiX Toolset v3 (heat, candle, light)
         shell: pwsh
         run: |
-          choco install wixtoolset -y --no-progress
           $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')
-          $heatCmd = Get-Command heat.exe -ErrorAction SilentlyContinue
           $heatPath = $null
+          $heatCmd = Get-Command heat.exe -ErrorAction SilentlyContinue
           if ($heatCmd) {
             $heatPath = $heatCmd.Source
           } else {
@@ -194,19 +197,30 @@ jobs:
             if ($found) { $heatPath = $found.FullName }
           }
           if (-not $heatPath) {
-            throw "heat.exe not found after wixtoolset install. Check Chocolatey log."
+            choco install wixtoolset -y --no-progress
+            $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')
+            $heatCmd = Get-Command heat.exe -ErrorAction SilentlyContinue
+            if ($heatCmd) {
+              $heatPath = $heatCmd.Source
+            } else {
+              $found = Get-ChildItem -Path "${env:ProgramFiles(x86)}\WiX Toolset v3*" -Filter heat.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($found) { $heatPath = $found.FullName }
+            }
+          } else {
+            Write-Host "WiX already available: $heatPath"
+          }
+          if (-not $heatPath) {
+            throw "heat.exe not found. Install WiX Toolset v3 or fix Chocolatey."
           }
           $wixBin = Split-Path $heatPath -Parent
           Write-Host "WiX bin: $wixBin"
           echo "$wixBin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-      - name: Add MSVC tools to PATH (optional, improves Nuitka Qt scan)
-        uses: microsoft/setup-msbuild@v2
-
       - name: Build deploy/ (pyside6-deploy / Nuitka)
         shell: pwsh
         run: |
           Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+          . "${{ github.workspace }}\scripts\prepend_msvc_tools.ps1"
           & "${{ github.workspace }}\scripts\build_deploy_windows.ps1"
 
       - name: Build MSI installer

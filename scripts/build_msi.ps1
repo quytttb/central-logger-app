@@ -23,9 +23,21 @@ function Invoke-WixStep {
         [scriptblock]$Command
     )
     Write-Host "== $Label =="
-    & $Command
+    $lines = [System.Collections.Generic.List[string]]::new()
+    & $Command 2>&1 | ForEach-Object {
+        $line = $_.ToString()
+        Write-Host $line
+        [void]$lines.Add($line)
+    }
     if ($LASTEXITCODE -ne 0) {
         throw "$Label failed (exit $LASTEXITCODE)"
+    }
+    $text = $lines -join "`n"
+    if ($text -match '(?m)(?:heat|candle|light)\.exe\s*:\s*warning\s') {
+        throw "$Label emitted WiX tool warnings (see log above)"
+    }
+    if ($text -match 'error LGHT') {
+        throw "$Label reported LGHT error (see log above)"
     }
 }
 
@@ -59,7 +71,7 @@ $HarvestWxs = Join-Path $ObjDir "Harvest.wxs"
 # Exclude main exe — Product.wxs already installs CentralLogger.exe + Start Menu shortcut.
 Invoke-WixStep -Label "heat harvest deploy/" -Command {
     heat.exe dir $DeployDir -cg HarvestedFiles -dr INSTALLFOLDER -gg -sfrag -srd `
-        -x "CentralLogger.exe" -out $HarvestWxs
+        -sreg -scom -x "CentralLogger.exe" -out $HarvestWxs
 }
 
 $ProductWxs = Join-Path $WxsDir "Product.wxs"
