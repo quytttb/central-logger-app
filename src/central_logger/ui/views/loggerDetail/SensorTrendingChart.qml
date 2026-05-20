@@ -1,11 +1,11 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../../"
 import "../../components/charts"
 import "../../components/common"
+import components
 
 ChartPanel {
     id: root
@@ -51,7 +51,6 @@ ChartPanel {
             seriesMax = mx
             if (chart) {
                 chart.pointCount = seriesLabels.length > 0 ? seriesLabels.length : 1
-                chart.minLabelWidthX = chart.pointCount > 60 ? 48 : 52
                 chart.maxYDigits = Math.max(3, String(Math.round(mx)).length + 1)
                 chart.schedulePaint()
             }
@@ -75,7 +74,7 @@ ChartPanel {
     }
 
     title: "Trending History"
-    subtitle: "Per poll · last ~120 readings"
+    subtitle: "Per poll · last ~24 readings"
 
     Item {
         id: chartArea
@@ -86,7 +85,7 @@ ChartPanel {
             anchors.fill: parent
             isDark: root.isDark
             pointCount: root.seriesLabels.length > 0 ? root.seriesLabels.length : 1
-            minLabelWidthX: pointCount > 60 ? 48 : 52
+            minLabelWidthX: 80
             maxYDigits: Math.max(3, String(Math.round(root.seriesMax)).length + 1)
 
             canvas.onPaint: {
@@ -194,7 +193,8 @@ ChartPanel {
 
             ColumnLayout {
                 spacing: 3
-                Qaterial.LabelCaption {
+                UiLabel {
+        textType: UiLabel.Caption
                     text: chart.hoveredIndex >= 0 && chart.hoveredIndex < root.seriesLabels.length
                         ? root.seriesLabels[chart.hoveredIndex]
                         : ""
@@ -212,7 +212,8 @@ ChartPanel {
                             color: root.seriesColor(modelData.sensorId)
                             anchors.verticalCenter: parent.verticalCenter
                         }
-                        Qaterial.LabelCaption {
+                        UiLabel {
+        textType: UiLabel.Body2
                             text: (modelData.label || ("S" + modelData.sensorId)) + ": "
                                 + (chart.hoveredIndex >= 0 && modelData.values && chart.hoveredIndex < modelData.values.length
                                     ? Number(modelData.values[chart.hoveredIndex]).toFixed(2)

@@ -5,13 +5,12 @@ Requires QApplication (not QGuiApplication alone) for QSystemTrayIcon.
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 
 from PySide6.QtCore import Property, QCoreApplication, QObject, Slot
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+from central_logger.app_paths import resolve_logo_path
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,7 @@ class SystemTrayBridge(QObject):
             self._ensure_tray()
 
     def _resolve_icon(self) -> QIcon:
-        logo = _PROJECT_ROOT / "resources" / "images" / "4M Technologies Blue.svg"
+        logo = resolve_logo_path()
         if logo.is_file():
             icon = QIcon(str(logo))
             if not icon.isNull():

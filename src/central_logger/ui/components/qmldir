@@ -1,10 +1,16 @@
 module components
 
 # common
+singleton MaterialIcons 1.0 common/MaterialIcons.qml
+UiLabel 1.0 common/UiLabel.qml
+UiIcon 1.0 common/UiIcon.qml
+Snackbar 1.0 common/Snackbar.qml
 Badge 1.0 common/Badge.qml
 SensorStatusBadge 1.0 common/SensorStatusBadge.qml
 FormSectionLabel 1.0 common/FormSectionLabel.qml
 LabeledField 1.0 common/LabeledField.qml
+FormComboBox 1.0 common/FormComboBox.qml
+FormSpinBox 1.0 common/FormSpinBox.qml
 DialogButton 1.0 common/DialogButton.qml
 PageHeader 1.0 common/PageHeader.qml
 TableHeaderCell 1.0 common/TableHeaderCell.qml

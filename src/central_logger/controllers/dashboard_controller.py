@@ -29,7 +29,6 @@ QML_IMPORT_MAJOR_VERSION = 1
 
 log = logging.getLogger(__name__)
 
-POLL_HISTORY_MAX = 120
 INGESTION_BUCKET_MINUTES = 5
 
 
@@ -439,17 +438,19 @@ class DashboardController(QObject):
 
     @Slot(int, result="QString")
     def pollTrendingChartJson(self, logger_id: int) -> str:
-        return self.getSensorTrendingPollChart(logger_id, POLL_HISTORY_MAX)
+        return self.getSensorTrendingPollChart(logger_id, chart_queries.POLL_HISTORY_MAX)
 
     @Slot(result="QString")
     def getIngestionChart24h(self) -> str:
         return self.ingestionChartJson
 
     @Slot(int, int, result="QString")
-    def getSensorTrendingPollChart(self, logger_id: int, max_points: int = 120) -> str:
+    def getSensorTrendingPollChart(
+        self, logger_id: int, max_points: int = chart_queries.POLL_HISTORY_MAX
+    ) -> str:
         if max_points <= 0:
-            max_points = POLL_HISTORY_MAX
-        max_points = min(max_points, POLL_HISTORY_MAX)
+            max_points = chart_queries.POLL_HISTORY_MAX
+        max_points = min(max_points, chart_queries.POLL_HISTORY_MAX)
         cached = self._sensors.poll_trending_json.get(logger_id)
         if cached:
             return cached

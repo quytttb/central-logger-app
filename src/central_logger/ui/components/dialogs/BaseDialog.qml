@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../.."
 import "../common"
+import components
 
 /*
  * BaseDialog — Thống nhất UI cho các màn hình Modal dạng Shadcn.
@@ -15,7 +15,7 @@ Popup {
 
     property string title: "Dialog Title"
     property int preferredWidth: 450
-    property bool isDark: Qaterial.Style.theme === Qaterial.Style.Theme.Dark
+    property bool isDark: true
 
     default property alias dialogBody: contentContainer.data
     property alias dialogFooter: footerContainer.data
@@ -109,7 +109,8 @@ Popup {
                 RowLayout {
                     anchors.fill: parent
                     anchors.leftMargin: 24; anchors.rightMargin: 24
-                    Qaterial.LabelBody1 {
+                    UiLabel {
+        textType: UiLabel.Body2
                         text: root.title
                         Layout.fillWidth: true
                         color: Colors.textPrimary(root.isDark)
@@ -126,7 +127,7 @@ Popup {
                             hovered: closeMouse.containsMouse
                             isDark: root.isDark
                         }
-                        Qaterial.Icon { anchors.centerIn: parent; icon: Qaterial.Icons.close; size: 20; color: Colors.textSecondary(root.isDark) }
+                        UiIcon { anchors.centerIn: parent; name: "close"; size: 20; iconColor: Colors.textSecondary(root.isDark) }
                         MouseArea {
                             id: closeMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                             onClicked: root.close()

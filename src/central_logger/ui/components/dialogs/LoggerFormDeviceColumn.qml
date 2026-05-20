@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../.."
 import "../common"
+import components
 
 ColumnLayout {
     id: root
@@ -42,13 +42,14 @@ ColumnLayout {
             anchors.centerIn: parent
             width: parent.width - 32
             spacing: 6
-            Qaterial.Icon {
+            UiIcon {
                 Layout.alignment: Qt.AlignHCenter
-                icon: Qaterial.Icons.informationOutline
+                name: "informationOutline"
                 size: 24
-                color: Colors.textMuted(root.dialog.isDark)
+                iconColor: Colors.textMuted(root.dialog.isDark)
             }
-            Qaterial.LabelCaption {
+            UiLabel {
+        textType: UiLabel.Caption
                 Layout.fillWidth: true
                 text: root.dialog.mode === "add"
                     ? "Click Connect & Load Config on the left to load station, poll interval, and Modbus TCP settings from the edge device."
@@ -109,7 +110,8 @@ ColumnLayout {
             Layout.fillWidth: true
             spacing: 10
             CheckBox { id: modbusTcpEnabledCheck }
-            Qaterial.LabelBody2 {
+            UiLabel {
+        textType: UiLabel.Body2
                 text: "Modbus TCP server enabled"
                 color: Colors.textPrimary(root.dialog.isDark)
                 font.family: "Inter"

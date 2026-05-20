@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../.."
 import "../common"
+import components
 
 /*
  * Shadcn-style sidebar navigation.
@@ -15,7 +15,7 @@ Rectangle {
 
     property string currentView: "dashboard"
     property bool isOpen: true
-    property bool isDark: Qaterial.Style.theme === Qaterial.Style.Theme.Dark
+    property bool isDark: true
 
     /** Logo SVG viewBox ~186×80 — giữ height 40, width theo tỷ lệ để không bị co trong ô vuông. */
     readonly property real logoAspect: 186 / 80
@@ -105,7 +105,8 @@ Rectangle {
                     }
                 }
 
-                Qaterial.LabelBody2 {
+                UiLabel {
+        textType: UiLabel.Body2
                     text: "Central"
                     color: Colors.textPrimary(sidebar.isDark)
                     font.family: "Roboto"
@@ -113,7 +114,8 @@ Rectangle {
                     font.weight: Font.Bold
                     lineHeight: 1.1
                 }
-                Qaterial.LabelCaption {
+                UiLabel {
+        textType: UiLabel.Body2
                     text: "Logger"
                     color: Colors.textBody(sidebar.isDark)
                     font.family: "Roboto"
@@ -140,7 +142,8 @@ Rectangle {
                 Item { Layout.preferredHeight: 16 }
 
                 // Section: Overview
-                Qaterial.LabelCaption {
+                UiLabel {
+        textType: UiLabel.Caption
                     text: "OVERVIEW"
                     opacity: sidebar.isOpen ? 1.0 : 0.0
                     visible: opacity > 0
@@ -162,7 +165,7 @@ Rectangle {
                 NavItem {
                     viewName: "dashboard"
                     label: "Dashboard"
-                    iconSource: Qaterial.Icons.viewDashboard
+                    iconName: "viewDashboard"
                     currentView: sidebar.currentView
                     isOpen: sidebar.isOpen
                     isDark: sidebar.isDark
@@ -172,7 +175,8 @@ Rectangle {
                 Item { Layout.preferredHeight: 12 }
 
                 // Section: Edge Network
-                Qaterial.LabelCaption {
+                UiLabel {
+        textType: UiLabel.Caption
                     text: "EDGE NETWORK"
                     opacity: sidebar.isOpen ? 1.0 : 0.0
                     visible: opacity > 0
@@ -194,7 +198,7 @@ Rectangle {
                 NavItem {
                     viewName: "loggers"
                     label: "Loggers"
-                    iconSource: Qaterial.Icons.server
+                    iconName: "server"
                     currentView: sidebar.currentView
                     isOpen: sidebar.isOpen
                     isDark: sidebar.isDark
@@ -204,7 +208,8 @@ Rectangle {
                 Item { Layout.preferredHeight: 12 }
 
                 // Section: Configuration
-                Qaterial.LabelCaption {
+                UiLabel {
+        textType: UiLabel.Caption
                     text: "CONFIGURATION"
                     opacity: sidebar.isOpen ? 1.0 : 0.0
                     visible: opacity > 0
@@ -226,7 +231,7 @@ Rectangle {
                 NavItem {
                     viewName: "settings"
                     label: "Settings"
-                    iconSource: Qaterial.Icons.cog
+                    iconName: "cog"
                     currentView: sidebar.currentView
                     isOpen: sidebar.isOpen
                     isDark: sidebar.isDark
@@ -236,7 +241,8 @@ Rectangle {
         }
 
         // ── Footer ──────────────────────────────────────────────────────────
-        Qaterial.LabelCaption {
+        UiLabel {
+        textType: UiLabel.Caption
             text: "© 2026 4M Technologies"
             color: Colors.textMuted(sidebar.isDark)
             font.family: "Roboto"
@@ -260,7 +266,7 @@ Rectangle {
 
         property string viewName: ""
         property string label: ""
-        property url iconSource: ""
+        property string iconName: ""
         property string currentView: ""
         property bool isOpen: true
         property bool isDark: true
@@ -305,15 +311,16 @@ Rectangle {
                 Layout.preferredHeight: 16
                 Layout.alignment: Qt.AlignVCenter
 
-                Qaterial.Icon {
+                UiIcon {
                     anchors.centerIn: parent
-                    icon: navItem.iconSource
+                    name: navItem.iconName
                     size: 16
-                    color: navItem.isActive ? Colors.navActiveFg(navItem.isDark) : Colors.textSecondary(navItem.isDark)
+                    iconColor: navItem.isActive ? Colors.navActiveFg(navItem.isDark) : Colors.textSecondary(navItem.isDark)
                 }
             }
 
-            Qaterial.LabelBody2 {
+            UiLabel {
+        textType: UiLabel.Body2
                 text: navItem.label
                 opacity: navItem.isOpen ? 1.0 : 0.0
                 visible: opacity > 0

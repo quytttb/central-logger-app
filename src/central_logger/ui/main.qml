@@ -1,14 +1,14 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Material
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 import CentralLogger.Core 1.0
 
 import "."
 import "views"
 import "components"
 
-Qaterial.ApplicationWindow {
+ApplicationWindow {
     id: window
     width: 1440
     height: 880
@@ -28,6 +28,8 @@ Qaterial.ApplicationWindow {
     property alias dashboardController: dashboardController
     property alias settingsController: settingsController
     property string searchQuery: ""
+
+    Material.theme: isDark ? Material.Dark : Material.Light
 
     function _viewOpacity(name) {
         return window.currentView === name ? 1.0 : 0.0
@@ -90,11 +92,8 @@ Qaterial.ApplicationWindow {
 
     function _applyTheme(dark) {
         isDark = dark
-        if (dark) {
-            Qaterial.Style.theme = Qaterial.Style.Theme.Dark
-        } else {
-            Qaterial.Style.theme = Qaterial.Style.Theme.Light
-        }
+        Material.theme = dark ? Material.Dark : Material.Light
+        appSnackbar.isDark = dark
     }
 
     onClosing: function (close) {
@@ -104,7 +103,13 @@ Qaterial.ApplicationWindow {
 
     function notify(message, severity) {
         var t = severity === "error" ? 7000 : 4000
-        Qaterial.SnackbarManager.show({ text: message, timeout: t })
+        appSnackbar.show(message, t, severity || "info")
+    }
+
+    Snackbar {
+        id: appSnackbar
+        parent: window.contentItem
+        isDark: window.isDark
     }
 
     // ── Root layout: Sidebar + Main content ─────────────────────────────────
@@ -148,7 +153,8 @@ Qaterial.ApplicationWindow {
                 onMenuToggled: window.sidebarOpen = !window.sidebarOpen
                 onThemeChanged: function (dark) {
                     window._applyTheme(dark)
-                    if (settingsController) settingsController.theme = dark ? "dark" : "light"
+                    if (settingsController)
+                        settingsController.saveTheme(dark ? "dark" : "light")
                 }
                 onSearchChanged: function (q) {
                     window.searchQuery = q
@@ -169,6 +175,10 @@ Qaterial.ApplicationWindow {
                     isDark: window.isDark
                     dashboardController: window.dashboardController
                     recentEventsModel: recentEventsModel
+                    onSelectLogger: function (loggerId) {
+                        window.selectedLoggerId = loggerId
+                        window.currentView = "logger-detail"
+                    }
                     opacity: window._viewOpacity("dashboard")
                     visible: opacity > 0
                     enabled: visible
@@ -226,6 +236,10 @@ Qaterial.ApplicationWindow {
                     anchors.fill: parent
                     isDark: window.isDark
                     settingsController: window.settingsController
+                    onThemeApplied: function (t) {
+                        window._applyTheme((t || "dark").toLowerCase() === "dark")
+                    }
+                    onSettingsSaved: dashboardController.purgeOldData()
                     opacity: window._viewOpacity("settings")
                     visible: opacity > 0
                     enabled: visible

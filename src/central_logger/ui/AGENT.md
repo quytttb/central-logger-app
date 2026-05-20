@@ -3,7 +3,7 @@
 Bạn đang ở khu vực View (UI Layer) của dự án. Giao diện được xây dựng bằng **QML** của framework Qt 6 (PySide6).
 
 ## Đặc điểm của khu vực này
-1. **Qaterial UI:** Dự án sử dụng bộ component Qaterial (dựa trên Material Design). Hãy tận dụng các component của Qaterial thay vì tự viết lại từ đầu nếu có thể.
+1. **UI components:** Dùng `UiLabel`, `UiIcon`, `Snackbar` (`import components`) và `Colors.qml` cho theme. Style Material qua `qtquickcontrols2.conf`.
 2. **Cấu trúc thư mục QML (tương đối với `src/central_logger/ui/`):**
    - `main.qml`: Root `ApplicationWindow`; khai báo `LoggerListModel`, `RecentEventsModel`, `DashboardController`, `SettingsController` và alias xuống các view; routing giữa các view qua `currentView`.
    - `views/`: Các màn hình lớn — `dashboard/DashboardView.qml`, `loggers/LoggersView.qml`, `loggerDetail/LoggerDetailView.qml`, `settings/SettingsView.qml`, kèm các sub-view (chart, table, sidebar) đặt cùng thư mục.

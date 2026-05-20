@@ -1,11 +1,12 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Controls.Material
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../../"
 import "../../components/common"
 import "../../components/cards"
+import components
 
 /*
  * Application settings page — Shadcn style.
@@ -13,33 +14,84 @@ import "../../components/cards"
 Item {
     id: view
 
-    property bool isDark: Qaterial.Style.theme === Qaterial.Style.Theme.Dark
+    property bool isDark: true
     property var settingsController: null
 
-    property string theme: settingsController ? settingsController.theme : "dark"
-    property string systemTimezone: settingsController ? settingsController.systemTimezone : "Asia/Ho_Chi_Minh"
-    property int dataRetentionDays: settingsController ? settingsController.dataRetentionDays : 30
-    property int defaultMapZoom: settingsController ? settingsController.defaultMapZoom : 12
-    property bool maintenanceMode: settingsController ? settingsController.maintenanceMode : false
-    property string alertEmailContacts: settingsController ? settingsController.alertEmailContacts : ""
+    readonly property var timezoneOptions: [
+        "Asia/Ho_Chi_Minh",
+        "UTC",
+        "Asia/Bangkok",
+        "Asia/Singapore",
+        "Asia/Tokyo",
+        "Asia/Shanghai",
+        "Europe/London",
+        "Europe/Berlin",
+        "America/New_York",
+        "America/Los_Angeles",
+        "Australia/Sydney"
+    ]
+
+    property var activeTimezoneOptions: timezoneOptions
 
     signal themeApplied(string theme)
+    signal settingsSaved()
+
+    function _themeIndex(theme) {
+        return theme === "light" ? 1 : 0
+    }
+
+    function _timezoneModelFor(tz) {
+        var opts = timezoneOptions.slice()
+        if (tz && opts.indexOf(tz) < 0)
+            opts.unshift(tz)
+        return opts
+    }
+
+    function syncFromController() {
+        if (!settingsController)
+            return
+        themeCombo.currentIndex = _themeIndex(settingsController.theme)
+        var tz = settingsController.systemTimezone
+        activeTimezoneOptions = _timezoneModelFor(tz)
+        timezoneCombo.currentIndex = Math.max(0, activeTimezoneOptions.indexOf(tz))
+        retentionSpin.value = settingsController.dataRetentionDays
+        maintenanceCheck.checked = settingsController.maintenanceMode
+    }
 
     function saveAll() {
-        if (!settingsController) return
-        var retention = parseInt(retentionField.value)
-        var zoom = parseInt(mapZoomField.value)
-        var themeValue = (themeField.value || "dark").toLowerCase()
+        if (!settingsController)
+            return
+        var themeValue = themeCombo.currentIndex === 1 ? "light" : "dark"
+        var tz = activeTimezoneOptions[timezoneCombo.currentIndex]
         settingsController.save(
             themeValue,
-            timezoneField.value,
-            isNaN(retention) ? view.dataRetentionDays : retention,
-            isNaN(zoom) ? view.defaultMapZoom : zoom,
-            maintenanceCheck.checked,
-            emailsArea.text
+            tz,
+            retentionSpin.value,
+            maintenanceCheck.checked
         )
-        view.themeApplied(themeValue)
     }
+
+    Connections {
+        target: view.settingsController
+        ignoreUnknownSignals: true
+        function onThemeChanged() { view.syncFromController() }
+        function onSystemTimezoneChanged() { view.syncFromController() }
+        function onDataRetentionDaysChanged() { view.syncFromController() }
+        function onMaintenanceModeChanged() { view.syncFromController() }
+        function onSaved() {
+            if (typeof window !== "undefined" && window && window.notify)
+                window.notify("Settings saved", "success")
+            if (settingsController)
+                view.themeApplied(settingsController.theme)
+            view.settingsSaved()
+        }
+        function onLoadError(msg) {
+            if (typeof window !== "undefined" && window && window.notify)
+                window.notify(msg, "error")
+        }
+    }
+
+    Component.onCompleted: syncFromController()
 
     Flickable {
         anchors.fill: parent
@@ -62,6 +114,7 @@ Item {
                 title: "Application Settings"
                 subtitle: "Global preferences for Central Logger instance."
                 actionText: "Save Changes"
+                iconName: "save"
                 onActionClicked: view.saveAll()
             }
 
@@ -79,16 +132,30 @@ Item {
                     anchors.fill: parent
                     spacing: 24
 
-                    GridLayout {
+                    FormSectionLabel {
                         Layout.fillWidth: true
-                        columns: 2
-                        columnSpacing: 24
-                        rowSpacing: 16
+                        isDark: view.isDark
+                        text: "APPEARANCE"
+                    }
 
-                        LabeledField { id: themeField; label: "Default Theme"; value: view.theme; isDark: view.isDark }
-                        LabeledField { id: timezoneField; label: "System Timezone"; value: view.systemTimezone; isDark: view.isDark }
-                        LabeledField { id: retentionField; label: "Data Retention (Days)"; value: String(view.dataRetentionDays); isDark: view.isDark }
-                        LabeledField { id: mapZoomField; label: "Default Map Zoom"; value: String(view.defaultMapZoom); isDark: view.isDark }
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        UiLabel {
+                            textType: UiLabel.Body2
+                            text: "Default Theme"
+                            color: Colors.textPrimary(view.isDark)
+                            font.family: "Roboto"
+                            font.pixelSize: 14
+                            font.weight: Font.Medium
+                        }
+                        FormComboBox {
+                            id: themeCombo
+                            Layout.fillWidth: true
+                            isDark: view.isDark
+                            model: ["Dark", "Light"]
+                            currentIndex: 0
+                        }
                     }
 
                     Rectangle {
@@ -97,61 +164,115 @@ Item {
                         color: Colors.divider(view.isDark)
                     }
 
-                    Qaterial.LabelBody1 {
-                        text: "Alerting & Notifications"
-                        color: Colors.textPrimary(view.isDark)
-                        font.family: "Roboto"
-                        font.pixelSize: 16
-                        font.weight: Font.Medium
+                    FormSectionLabel {
+                        Layout.fillWidth: true
+                        isDark: view.isDark
+                        text: "DATA & CHARTS"
                     }
 
                     ColumnLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        Qaterial.LabelBody2 {
-                            text: "Alert Email Contacts"
+                        UiLabel {
+                            textType: UiLabel.Body2
+                            text: "System Timezone"
                             color: Colors.textPrimary(view.isDark)
                             font.family: "Roboto"
                             font.pixelSize: 14
                             font.weight: Font.Medium
                         }
-                        Rectangle {
+                        FormComboBox {
+                            id: timezoneCombo
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 96
-                            radius: 6
-                            color: Colors.surfaceMuted(view.isDark)
-                            border.width: 1
-                            border.color: Colors.border(view.isDark)
-                            TextArea {
-                                id: emailsArea
-                                anchors.fill: parent
-                                anchors.margins: 8
-                                text: view.alertEmailContacts
-                                font.family: "Roboto"
-                                font.pixelSize: 14
-                                color: Colors.textPrimary(view.isDark)
-                                wrapMode: Text.WordWrap
-                                background: null
-                            }
+                            isDark: view.isDark
+                            model: view.activeTimezoneOptions
+                            currentIndex: 0
+                        }
+                        UiLabel {
+                            textType: UiLabel.Caption
+                            Layout.fillWidth: true
+                            text: "Charts and event timestamps use this timezone."
+                            color: Colors.textMuted(view.isDark)
+                            font.family: "Inter"
+                            font.pixelSize: 12
+                            wrapMode: Text.WordWrap
                         }
                     }
 
-                    RowLayout {
-                        spacing: 12
-                        CheckBox {
-                            id: maintenanceCheck
-                            checked: view.maintenanceMode
-                        }
-                        Qaterial.LabelBody2 {
-                            text: "Enable Maintenance Mode (suppress all alerts)"
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        UiLabel {
+                            textType: UiLabel.Body2
+                            text: "Data Retention (Days)"
                             color: Colors.textPrimary(view.isDark)
                             font.family: "Roboto"
                             font.pixelSize: 14
                             font.weight: Font.Medium
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: maintenanceCheck.toggle()
+                        }
+                        FormSpinBox {
+                            id: retentionSpin
+                            isDark: view.isDark
+                            from: 1
+                            to: 3650
+                            value: 30
+                            editable: true
+                        }
+                        UiLabel {
+                            textType: UiLabel.Caption
+                            Layout.fillWidth: true
+                            text: "Sensor readings and events older than this are removed on save and hourly."
+                            color: Colors.textMuted(view.isDark)
+                            font.family: "Inter"
+                            font.pixelSize: 12
+                            wrapMode: Text.WordWrap
+                        }
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 1
+                        color: Colors.divider(view.isDark)
+                    }
+
+                    FormSectionLabel {
+                        Layout.fillWidth: true
+                        isDark: view.isDark
+                        text: "OPERATIONS"
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 12
+                        CheckBox {
+                            id: maintenanceCheck
+                            Material.theme: view.isDark ? Material.Dark : Material.Light
+                            Material.accent: Colors.primary(view.isDark)
+                        }
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+                            UiLabel {
+                                textType: UiLabel.Body2
+                                text: "Maintenance Mode"
+                                color: Colors.textPrimary(view.isDark)
+                                font.family: "Roboto"
+                                font.pixelSize: 14
+                                font.weight: Font.Medium
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: maintenanceCheck.toggle()
+                                }
+                            }
+                            UiLabel {
+                                textType: UiLabel.Caption
+                                Layout.fillWidth: true
+                                text: "Suppresses Alarm, Offline, and Warning system events while enabled."
+                                color: Colors.textMuted(view.isDark)
+                                font.family: "Inter"
+                                font.pixelSize: 12
+                                wrapMode: Text.WordWrap
                             }
                         }
                     }

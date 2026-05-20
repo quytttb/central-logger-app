@@ -17,7 +17,8 @@ from central_logger.services.sensor_catalog import display_name_for_sensor
 log = logging.getLogger(__name__)
 
 INGESTION_BUCKET_MINUTES = 5
-POLL_HISTORY_MAX = 120
+# Poll points kept in memory and shown on Logger Detail trending chart (~1 min at ~2.5s/poll).
+POLL_HISTORY_MAX = 24
 
 
 def chart_timezone(session: Session | None = None) -> ZoneInfo:

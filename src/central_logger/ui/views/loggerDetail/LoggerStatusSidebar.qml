@@ -2,10 +2,10 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Dialogs
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../../"
 import "../../components/cards"
+import components
 
 PanelCard {
     id: root
@@ -39,7 +39,8 @@ PanelCard {
         anchors.fill: parent
         spacing: 0
 
-        Qaterial.LabelBody1 {
+        UiLabel {
+        textType: UiLabel.Body1
             text: "Status"
             color: Colors.textPrimary(root.isDark)
             font.family: "Roboto"
@@ -70,7 +71,8 @@ PanelCard {
         Rectangle { Layout.fillWidth: true; height: 1; color: Colors.divider(root.isDark) }
         Item { Layout.preferredHeight: 24 }
 
-        Qaterial.LabelBody1 {
+        UiLabel {
+        textType: UiLabel.Body1
             text: "Hardware Health"
             color: Colors.textPrimary(root.isDark)
             font.family: "Roboto"
@@ -103,13 +105,22 @@ PanelCard {
             color: dlMouse.containsMouse && root.canDownloadReport
                 ? Colors.buttonSecondaryHover(root.isDark)
                 : Colors.buttonSecondary(root.isDark)
-            Qaterial.LabelBody2 {
+            RowLayout {
                 anchors.centerIn: parent
-                text: "Download Report"
-                color: Colors.textPrimary(root.isDark)
-                font.family: "Roboto"
-                font.pixelSize: 14
-                font.weight: Font.Medium
+                spacing: 8
+                UiIcon {
+                    name: "download"
+                    size: 18
+                    iconColor: Colors.textPrimary(root.isDark)
+                }
+                UiLabel {
+                    textType: UiLabel.Body2
+                    text: "Download Report"
+                    color: Colors.textPrimary(root.isDark)
+                    font.family: "Roboto"
+                    font.pixelSize: 14
+                    font.weight: Font.Medium
+                }
             }
             MouseArea {
                 id: dlMouse

@@ -15,6 +15,7 @@
         <file alias="Roboto/Roboto-Regular.ttf">fonts/Roboto/Roboto-Regular.ttf</file>
         <file alias="Roboto/Roboto-Medium.ttf">fonts/Roboto/Roboto-Medium.ttf</file>
         <file alias="RobotoMono/RobotoMono-Regular.ttf">fonts/RobotoMono/RobotoMono-Regular.ttf</file>
+        <file alias="MaterialSymbols/MaterialSymbolsOutlined.ttf">fonts/MaterialSymbols/MaterialSymbolsOutlined.ttf</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="logo.svg">images/4M Technologies Blue.svg</file>

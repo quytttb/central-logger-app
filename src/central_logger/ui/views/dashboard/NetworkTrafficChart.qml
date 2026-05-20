@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../../"
 import "../../components/charts"
+import components
 
 ChartPanel {
     id: root
@@ -229,7 +229,8 @@ ChartPanel {
                 id: ttCol
                 anchors.centerIn: parent
                 spacing: 4
-                Qaterial.LabelCaption {
+                UiLabel {
+        textType: UiLabel.Caption
                     text: chart.hoveredIndex >= 0 && chart.hoveredIndex < root.chartData.length
                         ? root.chartData[chart.hoveredIndex].hour
                         : ""
@@ -247,7 +248,8 @@ ChartPanel {
                         color: "#3b82f6"
                         anchors.verticalCenter: parent.verticalCenter
                     }
-                    Qaterial.LabelCaption {
+                    UiLabel {
+        textType: UiLabel.Caption
                         text: {
                             if (chart.hoveredIndex < 0 || chart.hoveredIndex >= root.chartData.length)
                                 return "Readings: —"
@@ -268,7 +270,8 @@ ChartPanel {
                         color: "#10b981"
                         anchors.verticalCenter: parent.verticalCenter
                     }
-                    Qaterial.LabelCaption {
+                    UiLabel {
+        textType: UiLabel.Caption
                         text: "Active loggers: " + (chart.hoveredIndex >= 0 && chart.hoveredIndex < root.chartData.length
                             ? root.chartData[chart.hoveredIndex].activeLoggers
                             : "")

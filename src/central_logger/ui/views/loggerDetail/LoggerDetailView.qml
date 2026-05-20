@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../../"
 import "../../components/common"
@@ -15,7 +14,7 @@ import "../../logic/LoggerDetailLogic.js" as DetailLogic
 Item {
     id: view
 
-    property bool isDark: Qaterial.Style.theme === Qaterial.Style.Theme.Dark
+    property bool isDark: true
     property int loggerId: -1
     property var loggersModel: null
     property var dashboardController: null

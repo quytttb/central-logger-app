@@ -1,0 +1,45 @@
+module components
+
+# common
+singleton MaterialIcons 1.0 common/MaterialIcons.qml
+UiLabel 1.0 common/UiLabel.qml
+UiIcon 1.0 common/UiIcon.qml
+Snackbar 1.0 common/Snackbar.qml
+Badge 1.0 common/Badge.qml
+SensorStatusBadge 1.0 common/SensorStatusBadge.qml
+FormSectionLabel 1.0 common/FormSectionLabel.qml
+LabeledField 1.0 common/LabeledField.qml
+FormComboBox 1.0 common/FormComboBox.qml
+FormSpinBox 1.0 common/FormSpinBox.qml
+DialogButton 1.0 common/DialogButton.qml
+PageHeader 1.0 common/PageHeader.qml
+TableHeaderCell 1.0 common/TableHeaderCell.qml
+ListRowDelegate 1.0 common/ListRowDelegate.qml
+HoverHighlight 1.0 common/HoverHighlight.qml
+singleton SensorPalette 1.0 common/SensorPalette.qml
+
+# cards
+StatCard 1.0 cards/StatCard.qml
+PanelCard 1.0 cards/PanelCard.qml
+
+# navigation
+AppSidebar 1.0 navigation/AppSidebar.qml
+AppTopBar 1.0 navigation/AppTopBar.qml
+
+# dialogs
+BaseDialog 1.0 dialogs/BaseDialog.qml
+AddLoggerDialog 1.0 dialogs/AddLoggerDialog.qml
+ConfirmDialog 1.0 dialogs/ConfirmDialog.qml
+EditConfigDialog 1.0 dialogs/EditConfigDialog.qml
+LoggerFormDialog 1.0 dialogs/LoggerFormDialog.qml
+LoggerFormField 1.0 dialogs/LoggerFormField.qml
+LoggerFormCentralColumn 1.0 dialogs/LoggerFormCentralColumn.qml
+LoggerFormDeviceColumn 1.0 dialogs/LoggerFormDeviceColumn.qml
+
+# utils
+FrameResizeHandles 1.0 utils/FrameResizeHandles.qml
+
+# charts
+BaseChart 1.0 charts/BaseChart.qml
+ChartPanel 1.0 charts/ChartPanel.qml
+ChartTooltipOverlay 1.0 charts/ChartTooltipOverlay.qml

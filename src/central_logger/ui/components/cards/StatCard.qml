@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../.."
 import "."
+import components
 
 /*
  * Shadcn-style stat card for Dashboard overview.
@@ -18,7 +18,7 @@ PanelCard {
     property string value: "0"
     property string trend: ""
     property string trendColor: ""
-    property string iconSource: ""
+    property string iconName: ""
 
     hoverable: true
     implicitHeight: 140
@@ -33,7 +33,8 @@ PanelCard {
             Layout.preferredHeight: 20
             spacing: 8
 
-            Qaterial.LabelBody2 {
+            UiLabel {
+        textType: UiLabel.Body2
                 text: card.statTitle
                 color: Colors.textSecondary(card.isDark)
                 font.family: "Roboto"
@@ -45,16 +46,17 @@ PanelCard {
                 elide: Text.ElideRight
             }
 
-            Qaterial.Icon {
-                visible: card.iconSource !== ""
-                icon: card.iconSource
+            UiIcon {
+                visible: card.iconName !== ""
+                name: card.iconName
                 size: 16
-                color: Colors.textMuted(card.isDark)
+                iconColor: Colors.textMuted(card.isDark)
                 Layout.alignment: Qt.AlignVCenter
             }
         }
 
-        Qaterial.LabelHeadline3 {
+        UiLabel {
+        textType: UiLabel.Headline3
             text: card.value
             color: Colors.textPrimary(card.isDark)
             font.family: "Roboto"
@@ -68,7 +70,8 @@ PanelCard {
             Layout.preferredHeight: 20
             Layout.topMargin: 4
 
-            Qaterial.LabelCaption {
+            UiLabel {
+        textType: UiLabel.Caption
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
                 visible: card.trend !== ""

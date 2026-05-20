@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../../"
 import "../../components/common"
+import components
 
 ListRowDelegate {
     id: root
@@ -43,18 +43,19 @@ ListRowDelegate {
             Rectangle {
                 width: 32; height: 32; radius: 16
                 color: Colors.buttonSecondary(root.isDark)
-                Qaterial.Icon {
+                UiIcon {
                     anchors.centerIn: parent
-                    icon: Qaterial.Icons.chip
+                    name: "chip"
                     size: 16
-                    color: root.online ? Colors.primary(root.isDark) : Colors.textMuted(root.isDark)
+                    iconColor: root.online ? Colors.primary(root.isDark) : Colors.textMuted(root.isDark)
                 }
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 2
-                Qaterial.LabelBody2 {
+                UiLabel {
+        textType: UiLabel.Body2
                     text: root.name
                     color: Colors.textPrimary(root.isDark)
                     font.family: "Roboto"
@@ -63,7 +64,8 @@ ListRowDelegate {
                     elide: Text.ElideRight
                     Layout.fillWidth: true
                 }
-                Qaterial.LabelCaption {
+                UiLabel {
+        textType: UiLabel.Caption
                     text: root.host + ":" + root.port + " (Unit: " + root.unitId + ")"
                     color: Colors.textMuted(root.isDark)
                     font.family: "Roboto"
@@ -87,7 +89,8 @@ ListRowDelegate {
             }
         }
 
-        Qaterial.LabelBody2 {
+        UiLabel {
+        textType: UiLabel.Body2
             Layout.preferredWidth: 100
             text: root.sensorCount + " sensors"
             color: Colors.textBody(root.isDark)
@@ -95,7 +98,8 @@ ListRowDelegate {
             font.pixelSize: 14
         }
 
-        Qaterial.LabelBody2 {
+        UiLabel {
+        textType: UiLabel.Body2
             Layout.preferredWidth: 120
             text: root.lastUpdate !== "" ? root.lastUpdate : "Never"
             color: Colors.textSecondary(root.isDark)
@@ -112,13 +116,14 @@ ListRowDelegate {
                 anchors.fill: parent
                 spacing: 4
                 Item { Layout.fillWidth: true }
-                Qaterial.Icon {
+                UiIcon {
                     visible: root.lastError !== ""
-                    icon: Qaterial.Icons.alertOutline
+                    name: "alertOutline"
                     size: 12
-                    color: Colors.destructive(root.isDark)
+                    iconColor: Colors.destructive(root.isDark)
                 }
-                Qaterial.LabelCaption {
+                UiLabel {
+        textType: UiLabel.Caption
                     text: root.lastError !== "" ? root.lastError : "None"
                     color: root.lastError !== ""
                         ? Colors.destructive(root.isDark)

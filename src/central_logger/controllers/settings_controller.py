@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from PySide6.QtCore import Property, QObject, Signal, Slot
 from PySide6.QtQml import QmlElement
@@ -14,6 +15,28 @@ QML_IMPORT_MAJOR_VERSION = 1
 
 log = logging.getLogger(__name__)
 
+_RETENTION_MIN = 1
+_RETENTION_MAX = 3650
+_ALLOWED_THEMES = frozenset({"dark", "light"})
+
+
+def _normalize_theme(theme: str) -> str:
+    t = (theme or "dark").strip().lower()
+    return t if t in _ALLOWED_THEMES else "dark"
+
+
+def _validate_timezone(tz: str) -> str:
+    name = (tz or DEFAULT_SYSTEM_TIMEZONE).strip() or DEFAULT_SYSTEM_TIMEZONE
+    try:
+        ZoneInfo(name)
+    except ZoneInfoNotFoundError as exc:
+        raise ValueError(f"Invalid timezone: {name}") from exc
+    return name
+
+
+def _clamp_retention(days: int) -> int:
+    return max(_RETENTION_MIN, min(_RETENTION_MAX, int(days)))
+
 
 @QmlElement
 class SettingsController(QObject):
@@ -22,20 +45,16 @@ class SettingsController(QObject):
     themeChanged = Signal()
     systemTimezoneChanged = Signal()
     dataRetentionDaysChanged = Signal()
-    defaultMapZoomChanged = Signal()
     maintenanceModeChanged = Signal()
-    alertEmailContactsChanged = Signal()
     saved = Signal()
     loadError = Signal(str)
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._theme = "dark"
-        self._timezone = "UTC"
+        self._timezone = DEFAULT_SYSTEM_TIMEZONE
         self._retention_days = 30
-        self._map_zoom = 12
         self._maintenance = False
-        self._emails = ""
 
     # ---------- properties ----------
     @Property(str, notify=themeChanged)
@@ -44,6 +63,7 @@ class SettingsController(QObject):
 
     @theme.setter
     def theme(self, value: str) -> None:
+        value = _normalize_theme(value)
         if self._theme != value:
             self._theme = value
             self.themeChanged.emit()
@@ -64,19 +84,10 @@ class SettingsController(QObject):
 
     @dataRetentionDays.setter
     def dataRetentionDays(self, value: int) -> None:
+        value = _clamp_retention(value)
         if self._retention_days != value:
-            self._retention_days = int(value)
+            self._retention_days = value
             self.dataRetentionDaysChanged.emit()
-
-    @Property(int, notify=defaultMapZoomChanged)
-    def defaultMapZoom(self) -> int:
-        return self._map_zoom
-
-    @defaultMapZoom.setter
-    def defaultMapZoom(self, value: int) -> None:
-        if self._map_zoom != value:
-            self._map_zoom = int(value)
-            self.defaultMapZoomChanged.emit()
 
     @Property(bool, notify=maintenanceModeChanged)
     def maintenanceMode(self) -> bool:
@@ -87,16 +98,6 @@ class SettingsController(QObject):
         if self._maintenance != bool(value):
             self._maintenance = bool(value)
             self.maintenanceModeChanged.emit()
-
-    @Property(str, notify=alertEmailContactsChanged)
-    def alertEmailContacts(self) -> str:
-        return self._emails
-
-    @alertEmailContacts.setter
-    def alertEmailContacts(self, value: str) -> None:
-        if self._emails != value:
-            self._emails = value or ""
-            self.alertEmailContactsChanged.emit()
 
     # ---------- slots ----------
     @Slot()
@@ -113,40 +114,54 @@ class SettingsController(QObject):
                 self.theme = row.theme
                 self.systemTimezone = row.system_timezone
                 self.dataRetentionDays = row.data_retention_days
-                self.defaultMapZoom = row.default_map_zoom
                 self.maintenanceMode = row.maintenance_mode
-                self.alertEmailContacts = row.alert_email_contacts or ""
         except Exception as exc:  # noqa: BLE001
             log.exception("SettingsController.load failed")
             self.loadError.emit(str(exc))
 
-    @Slot(str, str, int, int, bool, str)
+    @Slot(str)
+    def saveTheme(self, theme: str) -> None:
+        theme_value = _normalize_theme(theme)
+        try:
+            with get_session() as session:
+                row = session.get(AppSettings, 1) or AppSettings(id=1)
+                row.theme = theme_value
+                session.add(row)
+                session.commit()
+            self.theme = theme_value
+        except Exception as exc:  # noqa: BLE001
+            log.exception("SettingsController.saveTheme failed")
+            self.loadError.emit(str(exc))
+
+    @Slot(str, str, int, bool)
     def save(
         self,
         theme: str,
         timezone: str,
         retention_days: int,
-        map_zoom: int,
         maintenance: bool,
-        emails: str,
     ) -> None:
+        try:
+            theme_value = _normalize_theme(theme)
+            tz_value = _validate_timezone(timezone)
+            retention_value = _clamp_retention(retention_days)
+        except ValueError as exc:
+            self.loadError.emit(str(exc))
+            return
+
         try:
             with get_session() as session:
                 row = session.get(AppSettings, 1) or AppSettings(id=1)
-                row.theme = theme or "dark"
-                row.system_timezone = timezone or DEFAULT_SYSTEM_TIMEZONE
-                row.data_retention_days = int(retention_days)
-                row.default_map_zoom = int(map_zoom)
+                row.theme = theme_value
+                row.system_timezone = tz_value
+                row.data_retention_days = retention_value
                 row.maintenance_mode = bool(maintenance)
-                row.alert_email_contacts = emails or ""
                 session.add(row)
                 session.commit()
-            self.theme = theme
-            self.systemTimezone = timezone
-            self.dataRetentionDays = retention_days
-            self.defaultMapZoom = map_zoom
+            self.theme = theme_value
+            self.systemTimezone = tz_value
+            self.dataRetentionDays = retention_value
             self.maintenanceMode = maintenance
-            self.alertEmailContacts = emails
             self.saved.emit()
         except Exception as exc:  # noqa: BLE001
             log.exception("SettingsController.save failed")

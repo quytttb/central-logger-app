@@ -26,6 +26,7 @@ cp -a "${ROOT}/src/central_logger/ui" "${DEPLOY}/ui"
 cat > "${DEPLOY}/central-logger" <<'EOF'
 #!/bin/sh
 ROOT="$(cd "$(dirname "$0")" && pwd)"
+export CENTRAL_LOGGER_APP_ROOT="${ROOT}"
 export QT_QUICK_CONTROLS_CONF="${ROOT}/resources/qtquickcontrols2.conf"
 export QT_SCALE_FACTOR_ROUNDING_POLICY="${PassThrough:-PassThrough}"
 exec "${ROOT}/.venv/bin/python" -m central_logger.main "$@"

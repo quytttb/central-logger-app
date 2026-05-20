@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Controls
-import Qaterial 1.0 as Qaterial
 
 import "../.."
+import components
 
 /*
  * Shadcn-style status badge — small rounded label.
@@ -13,7 +13,7 @@ Rectangle {
 
     property string text: ""
     property string badgeColor: "zinc"
-    property bool isDark: Qaterial.Style.theme === Qaterial.Style.Theme.Dark
+    property bool isDark: true
 
     implicitHeight: 22
     implicitWidth: lbl.implicitWidth + 16
@@ -23,7 +23,8 @@ Rectangle {
     border.width: 1
     border.color: Colors.badgeBorder(isDark, badgeColor)
 
-    Qaterial.LabelCaption {
+    UiLabel {
+        textType: UiLabel.Caption
         id: lbl
         anchors.centerIn: parent
         text: badge.text

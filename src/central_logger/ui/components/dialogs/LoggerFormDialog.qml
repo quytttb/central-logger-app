@@ -2,11 +2,11 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Dialogs
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../.."
 import "../common"
 import "../../logic/LoggerFormLogic.js" as FormLogic
+import components
 
 /*
  * Unified Add / Edit logger form — 2-column desktop layout.
@@ -254,7 +254,8 @@ BaseDialog {
                     width: 8; height: 8; radius: 4
                     color: detail.online ? "#22c55e" : "#f59e0b"
                 }
-                Qaterial.LabelCaption {
+                UiLabel {
+        textType: UiLabel.Caption
                     text: detail.online
                         ? "Online"
                         : "Offline — device settings read-only. Central column still saves."
@@ -305,6 +306,7 @@ BaseDialog {
         },
         DialogButton {
             text: dialog.mode === "add" ? "Add Logger" : "Save Changes"
+            iconName: dialog.mode === "add" ? "plus" : "save"
             isDark: dialog.isDark
             variant: "primary"
             onClicked: {

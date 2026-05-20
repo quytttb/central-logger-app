@@ -1,10 +1,11 @@
 import QtQuick
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../.."
+import components
 
-Qaterial.LabelCaption {
+UiLabel {
+    textType: UiLabel.Caption
     Layout.fillWidth: true
     property bool isDark: true
     color: Colors.textMuted(isDark)

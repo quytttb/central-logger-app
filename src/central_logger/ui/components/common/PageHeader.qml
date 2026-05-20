@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../.."
 import "."
+import components
 
 /*
  * Page title + subtitle + optional primary action button.
@@ -17,7 +17,7 @@ RowLayout {
     property bool isDark: true
     property string titleFontFamily: "Inter"
     property string actionText: ""
-    property string actionIcon: ""
+    property string iconName: ""
 
     signal actionClicked()
 
@@ -27,14 +27,16 @@ RowLayout {
         spacing: 4
         Layout.fillWidth: root.actionText.length === 0
 
-        Qaterial.LabelHeadline5 {
+        UiLabel {
+        textType: UiLabel.Headline5
             text: root.title
             color: Colors.textPrimary(root.isDark)
             font.family: root.titleFontFamily
             font.pixelSize: 24
             font.weight: Font.Bold
         }
-        Qaterial.LabelBody2 {
+        UiLabel {
+        textType: UiLabel.Body2
             visible: root.subtitle.length > 0
             text: root.subtitle
             color: Colors.textSecondary(root.isDark)
@@ -67,13 +69,14 @@ RowLayout {
             id: actionRow
             anchors.centerIn: parent
             spacing: 8
-            Qaterial.Icon {
-                visible: root.actionIcon.length > 0
-                icon: root.actionIcon
+            UiIcon {
+                visible: root.iconName.length > 0
+                name: root.iconName
                 size: 16
-                color: "#ffffff"
+                iconColor: "#ffffff"
             }
-            Qaterial.LabelBody2 {
+            UiLabel {
+        textType: UiLabel.Body2
                 text: root.actionText
                 color: "#ffffff"
                 font.family: root.titleFontFamily

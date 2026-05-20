@@ -101,18 +101,13 @@ def test_cache_sensors_rest_readings_hook(qtbot, fresh_db):
     reason="main.qml missing",
 )
 def test_qml_main_loads_headless(qtbot):
-  """Load main.qml offscreen when Qaterial import path is available."""
-  from central_logger.main import _resolve_qml_root
-  from central_logger.qml_import_paths import qaterial_import_candidates
+  """Load main.qml offscreen (QQC2 Material + UiLabel/UiIcon, no native deps)."""
+  from central_logger.main import _load_application_fonts, _resolve_qml_root
 
-  project_root = Path(__file__).resolve().parents[1]
   engine = QQmlApplicationEngine()
+  _load_application_fonts()
   qml_root = _resolve_qml_root()
   engine.addImportPath(str(qml_root))
-  for path in qaterial_import_candidates(project_root):
-    engine.addImportPath(str(path))
   engine.load(QUrl.fromLocalFile(str(qml_root / "main.qml")))
   qtbot.wait(200)
-  if not engine.rootObjects():
-    pytest.skip("QML failed to load (Qaterial may be missing in this environment)")
-  assert engine.rootObjects()
+  assert engine.rootObjects(), "main.qml failed to load"

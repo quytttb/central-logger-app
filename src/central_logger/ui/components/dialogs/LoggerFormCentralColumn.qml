@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../.."
 import "../common"
+import components
 
 ColumnLayout {
     id: root
@@ -89,7 +89,7 @@ ColumnLayout {
             Layout.fillWidth: true
             spacing: 8
             Rectangle {
-                Layout.preferredWidth: scanQrLabel.implicitWidth + 24
+                Layout.preferredWidth: scanQrRow.implicitWidth + 24
                 Layout.preferredHeight: 32
                 radius: 6
                 opacity: root.dialog.qrScanEnabled ? 1.0 : 0.45
@@ -98,14 +98,23 @@ ColumnLayout {
                     : Colors.surfaceMuted(root.dialog.isDark)
                 border.width: 1
                 border.color: Colors.borderMuted(root.dialog.isDark)
-                Qaterial.LabelCaption {
-                    id: scanQrLabel
+                RowLayout {
+                    id: scanQrRow
                     anchors.centerIn: parent
-                    text: "Scan QR…"
-                    color: Colors.textMuted(root.dialog.isDark)
-                    font.family: "Inter"
-                    font.pixelSize: 12
-                    font.weight: Font.Medium
+                    spacing: 6
+                    UiIcon {
+                        name: "qrCode"
+                        size: 14
+                        iconColor: Colors.textMuted(root.dialog.isDark)
+                    }
+                    UiLabel {
+                        textType: UiLabel.Caption
+                        text: "Scan QR…"
+                        color: Colors.textMuted(root.dialog.isDark)
+                        font.family: "Inter"
+                        font.pixelSize: 12
+                        font.weight: Font.Medium
+                    }
                 }
                 MouseArea {
                     id: scanQrMouse
@@ -120,7 +129,8 @@ ColumnLayout {
                     }
                 }
             }
-            Qaterial.LabelCaption {
+            UiLabel {
+        textType: UiLabel.Caption
                 Layout.fillWidth: true
                 text: root.dialog.qrScanEnabled
                     ? "Import pairing QR from data-logger (PNG/JPG)"
@@ -142,13 +152,22 @@ ColumnLayout {
             Layout.preferredHeight: 36
             radius: 6
             color: connectMouse.containsMouse ? Colors.primaryHover(root.dialog.isDark) : Colors.primary(root.dialog.isDark)
-            Qaterial.LabelBody2 {
+            RowLayout {
                 anchors.centerIn: parent
-                text: "Connect & Load Config"
-                color: "#ffffff"
-                font.family: "Inter"
-                font.pixelSize: 13
-                font.weight: Font.Medium
+                spacing: 8
+                UiIcon {
+                    name: "link"
+                    size: 16
+                    iconColor: "#ffffff"
+                }
+                UiLabel {
+                    textType: UiLabel.Body2
+                    text: "Connect & Load Config"
+                    color: "#ffffff"
+                    font.family: "Inter"
+                    font.pixelSize: 13
+                    font.weight: Font.Medium
+                }
             }
             MouseArea {
                 id: connectMouse
@@ -158,7 +177,8 @@ ColumnLayout {
                 onClicked: root.dialog.connectAndLoadConfig()
             }
         }
-        Qaterial.LabelCaption {
+        UiLabel {
+        textType: UiLabel.Caption
             Layout.fillWidth: true
             visible: root.dialog.probeStatus.length > 0
             text: root.dialog.probeStatus

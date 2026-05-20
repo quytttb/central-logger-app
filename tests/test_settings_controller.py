@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pytest
-from sqlmodel import SQLModel
 
 from central_logger.controllers.settings_controller import SettingsController
 from central_logger.db import session as db_session
@@ -29,7 +28,7 @@ def test_load_seeds_defaults(qtbot, fresh_db):
 def test_save_persists(qtbot, fresh_db):
     ctrl = SettingsController()
     ctrl.load()
-    ctrl.save("light", "Asia/Ho_Chi_Minh", 60, 15, True, "ops@example.com\nadmin@example.com")
+    ctrl.save("light", "Asia/Ho_Chi_Minh", 60, True)
     assert ctrl.theme == "light"
     assert ctrl.dataRetentionDays == 60
     assert ctrl.maintenanceMode is True
@@ -38,4 +37,33 @@ def test_save_persists(qtbot, fresh_db):
     other.load()
     assert other.theme == "light"
     assert other.systemTimezone == "Asia/Ho_Chi_Minh"
-    assert other.alertEmailContacts.startswith("ops@example.com")
+    assert other.dataRetentionDays == 60
+    assert other.maintenanceMode is True
+
+
+def test_save_rejects_invalid_timezone(qtbot, fresh_db):
+    ctrl = SettingsController()
+    ctrl.load()
+    errors: list[str] = []
+    ctrl.loadError.connect(errors.append)
+    ctrl.save("dark", "Not/A/Timezone", 30, False)
+    assert errors
+    assert "Invalid timezone" in errors[0]
+    assert ctrl.systemTimezone == "Asia/Ho_Chi_Minh"
+
+
+def test_save_clamps_retention(qtbot, fresh_db):
+    ctrl = SettingsController()
+    ctrl.load()
+    ctrl.save("dark", "UTC", 99999, False)
+    assert ctrl.dataRetentionDays == 3650
+
+
+def test_save_theme_persists(qtbot, fresh_db):
+    ctrl = SettingsController()
+    ctrl.load()
+    ctrl.saveTheme("light")
+    assert ctrl.theme == "light"
+    other = SettingsController()
+    other.load()
+    assert other.theme == "light"

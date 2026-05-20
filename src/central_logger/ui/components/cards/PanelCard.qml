@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../.."
 import "../common"
+import components
 
 /*
  * Shadcn-style panel — radius 12, zinc border, optional titled header.
@@ -77,7 +77,8 @@ Rectangle {
                 anchors.leftMargin: 24
                 anchors.rightMargin: 24
 
-                Qaterial.LabelBody1 {
+                UiLabel {
+        textType: UiLabel.Body1
                     text: root.title
                     color: Colors.textPrimary(root.isDark)
                     font.family: root.titleFontFamily
@@ -86,7 +87,8 @@ Rectangle {
                     Layout.fillWidth: true
                 }
 
-                Qaterial.LabelCaption {
+                UiLabel {
+        textType: UiLabel.Caption
                     visible: root.headerNote.length > 0
                     text: root.headerNote
                     color: "#f97316"
@@ -94,7 +96,8 @@ Rectangle {
                     font.pixelSize: 11
                 }
 
-                Qaterial.LabelCaption {
+                UiLabel {
+        textType: UiLabel.Caption
                     visible: root.subtitle.length > 0
                     text: root.subtitle
                     color: Colors.textSecondary(root.isDark)

@@ -9,7 +9,7 @@
 Hệ thống được thiết kế theo mô hình **MVVM (Model - View - ViewModel)**.
 - **Model (Data Layer):** Nằm ở `src/central_logger/db/` và `src/central_logger/services/`. Xử lý lưu trữ SQLite, kết nối thiết bị (Modbus), lấy mẫu dữ liệu.
 - **ViewModel (Controller Layer):** Nằm ở `src/central_logger/controllers/` và `src/central_logger/viewmodels/`. Lớp trung gian, quản lý state và tương tác giữa UI và Backend. Các class ở đây thường kế thừa `QObject` và sử dụng `Property`, `Signal`, `Slot` để giao tiếp với QML.
-- **View (UI Layer):** Nằm ở thư mục `qml/`. Giao diện được xây dựng bằng QML và các component của thư viện Qaterial.
+- **View (UI Layer):** Nằm ở `src/central_logger/ui/`. QML + Qt Quick Controls 2 (Material), wrapper `UiLabel` / `UiIcon` / `Snackbar`.
 
 ## Cấu trúc thư mục chính
 - `/src/central_logger/`: Nơi chứa toàn bộ mã nguồn Python backend.

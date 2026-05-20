@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
-# Build a .deb from a Nuitka/pyside6-deploy output directory.
-# Usage: ./scripts/build_deb.sh [DEPLOY_DIR] [VERSION]
+# Build a .deb from deploy/ (venv or Nuitka output).
+# Version is read from pyproject.toml (bump via ./scripts/build.sh deb patch|minor|major).
+# Usage: ./scripts/build_deb.sh [DEPLOY_DIR]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DEPLOY_DIR="${1:-${ROOT}/deploy}"
-VERSION="${2:-$(python3 -c "import tomllib; print(tomllib.load(open('${ROOT}/pyproject.toml','rb'))['project']['version'])")}"
+VERSION="$(python3 -c "import tomllib; print(tomllib.load(open('${ROOT}/pyproject.toml','rb'))['project']['version'])")"
 PKG_NAME="central-logger-app"
 ARCH="amd64"
 STAGING="${ROOT}/dist/deb-staging"
 OUTPUT="${ROOT}/dist/${PKG_NAME}_${VERSION}_${ARCH}.deb"
+LOGO_SVG="${ROOT}/resources/images/4M Technologies Blue.svg"
 
 if [[ ! -d "${DEPLOY_DIR}" ]]; then
   echo "Deploy directory not found: ${DEPLOY_DIR}" >&2
@@ -27,7 +29,12 @@ if [[ -z "${BIN}" ]]; then
 fi
 
 rm -rf "${STAGING}"
-mkdir -p "${STAGING}/DEBIAN" "${STAGING}/opt/central-logger" "${STAGING}/usr/bin" "${STAGING}/usr/share/applications"
+mkdir -p "${STAGING}/DEBIAN" \
+  "${STAGING}/opt/central-logger" \
+  "${STAGING}/usr/bin" \
+  "${STAGING}/usr/share/applications" \
+  "${STAGING}/usr/share/icons/hicolor/scalable/apps" \
+  "${STAGING}/usr/share/icons/hicolor/256x256/apps"
 
 cp -a "${DEPLOY_DIR}/." "${STAGING}/opt/central-logger/"
 EXE_NAME="$(basename "${BIN}")"
@@ -38,19 +45,22 @@ exec /opt/central-logger/${EXE_NAME} "\$@"
 EOF
 chmod 755 "${STAGING}/usr/bin/central-logger"
 
-ICON="${ROOT}/resources/images"
-DESKTOP_ICON=""
-if [[ -f "${ICON}/logo.svg" ]]; then
-  DESKTOP_ICON="/opt/central-logger/resources/images/logo.svg"
+if [[ -f "${LOGO_SVG}" ]]; then
+  cp "${LOGO_SVG}" "${STAGING}/usr/share/icons/hicolor/scalable/apps/central-logger.svg"
+  if command -v rsvg-convert >/dev/null 2>&1; then
+    rsvg-convert -w 256 -h 256 "${LOGO_SVG}" \
+      -o "${STAGING}/usr/share/icons/hicolor/256x256/apps/central-logger.png"
+  fi
 fi
 
-cat > "${STAGING}/usr/share/applications/central-logger.desktop" <<EOF
+cat > "${STAGING}/usr/share/applications/central-logger.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application
 Name=Central Logger
 Comment=Central management for Modbus TCP Data Loggers
 Exec=central-logger
-Icon=${DESKTOP_ICON:-central-logger}
+Icon=central-logger
+StartupWMClass=central-logger
 Terminal=false
 Categories=Utility;
 EOF
@@ -65,6 +75,15 @@ Depends: libzbar0, libxkbcommon0, libegl1, libgl1, libfontconfig1, libdbus-1-3
 Maintainer: Central Logger Team <dev@local>
 Description: Central Logger App — PySide6 desktop client
 EOF
+
+cat > "${STAGING}/DEBIAN/postinst" <<'EOF'
+#!/bin/sh
+set -e
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+  gtk-update-icon-cache -q /usr/share/icons/hicolor || true
+fi
+EOF
+chmod 755 "${STAGING}/DEBIAN/postinst"
 
 mkdir -p "${ROOT}/dist"
 dpkg-deb --build --root-owner-group "${STAGING}" "${OUTPUT}"

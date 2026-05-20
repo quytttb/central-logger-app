@@ -2,10 +2,10 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
-import Qaterial 1.0 as Qaterial
 
 import "../.."
 import "../common"
+import components
 
 /*
  * Shadcn-style top header bar.
@@ -14,7 +14,7 @@ import "../common"
 Rectangle {
     id: bar
 
-    property bool isDark: Qaterial.Style.theme === Qaterial.Style.Theme.Dark
+    property bool isDark: true
     property alias searchText: searchField.text
     signal menuToggled()
     signal themeChanged(bool dark)
@@ -53,11 +53,11 @@ Rectangle {
                 isDark: bar.isDark
             }
 
-            Qaterial.Icon {
+            UiIcon {
                 anchors.centerIn: parent
-                icon: Qaterial.Icons.menu
+                name: "menu"
                 size: 20
-                color: Colors.textSecondary(bar.isDark)
+                iconColor: Colors.textSecondary(bar.isDark)
             }
             MouseArea {
                 id: hamMouse
@@ -93,10 +93,10 @@ Rectangle {
                 anchors.rightMargin: 12
                 spacing: 8
 
-                Qaterial.Icon {
-                    icon: Qaterial.Icons.magnify
+                UiIcon {
+                    name: "magnify"
                     size: 16
-                    color: Colors.textMuted(bar.isDark)
+                    iconColor: Colors.textMuted(bar.isDark)
                     Layout.alignment: Qt.AlignVCenter
                 }
 
@@ -113,7 +113,8 @@ Rectangle {
                     
                     onTextChanged: bar.searchChanged(text)
 
-                    Qaterial.LabelBody2 {
+                    UiLabel {
+        textType: UiLabel.Body2
                         text: "Search loggers or sites..."
                         color: Colors.textMuted(bar.isDark)
                         visible: searchField.text === ""
@@ -129,11 +130,11 @@ Rectangle {
                     Layout.alignment: Qt.AlignVCenter
                     visible: searchField.text !== "" || searchField.activeFocus
                     
-                    Qaterial.Icon {
+                    UiIcon {
                         anchors.centerIn: parent
-                        icon: Qaterial.Icons.closeCircle
+                        name: "closeCircle"
                         size: 16
-                        color: closeSearchMouse.containsMouse 
+                        iconColor: closeSearchMouse.containsMouse 
                             ? Colors.textPrimary(bar.isDark)
                             : Colors.textMuted(bar.isDark)
                     }
@@ -181,12 +182,13 @@ Rectangle {
                         id: lightRow
                         anchors.centerIn: parent
                         spacing: 4
-                        Qaterial.Icon {
-                            icon: Qaterial.Icons.whiteBalanceSunny
+                        UiIcon {
+                            name: "whiteBalanceSunny"
                             size: 12
-                            color: Colors.textMuted(bar.isDark)
+                            iconColor: Colors.textMuted(bar.isDark)
                         }
-                        Qaterial.LabelCaption {
+                        UiLabel {
+        textType: UiLabel.Caption
                             text: "Light"
                             font.family: "Roboto"
                             font.pixelSize: 11
@@ -214,12 +216,13 @@ Rectangle {
                         id: darkRow
                         anchors.centerIn: parent
                         spacing: 4
-                        Qaterial.Icon {
-                            icon: Qaterial.Icons.weatherNight
+                        UiIcon {
+                            name: "weatherNight"
                             size: 12
-                            color: Colors.textPrimary(bar.isDark)
+                            iconColor: Colors.textPrimary(bar.isDark)
                         }
-                        Qaterial.LabelCaption {
+                        UiLabel {
+        textType: UiLabel.Caption
                             text: "Dark"
                             font.family: "Roboto"
                             font.pixelSize: 11
@@ -263,11 +266,11 @@ Rectangle {
                     isDark: bar.isDark
                 }
 
-                Qaterial.Icon {
+                UiIcon {
                     anchors.centerIn: parent
-                    icon: Qaterial.Icons.windowMinimize
+                    name: "windowMinimize"
                     size: 16
-                    color: Colors.textSecondary(bar.isDark)
+                    iconColor: Colors.textSecondary(bar.isDark)
                 }
                 MouseArea {
                     id: minMouse
@@ -300,11 +303,11 @@ Rectangle {
                     }
                 }
 
-                Qaterial.Icon {
+                UiIcon {
                     anchors.centerIn: parent
-                    icon: Qaterial.Icons.windowClose
+                    name: "windowClose"
                     size: 16
-                    color: closeMouse.containsMouse
+                    iconColor: closeMouse.containsMouse
                         ? (bar.isDark ? "#fca5a5" : "#ef4444")
                         : Colors.textSecondary(bar.isDark)
                 }

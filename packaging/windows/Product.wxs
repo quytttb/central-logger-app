@@ -5,7 +5,6 @@
   Requires WiX Toolset v3+ (candle.exe + light.exe) on PATH.
 -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <?define ProductVersion = "0.1.0" ?>
   <?define UpgradeCode = "A1B2C3D4-E5F6-7890-ABCD-EF1234567890" ?>
 
   <Product

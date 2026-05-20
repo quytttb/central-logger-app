@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../../"
 import "../../components/common"
+import components
 
 Rectangle {
     id: root
@@ -42,11 +42,11 @@ Rectangle {
                 hovered: backMouse.containsMouse
                 isDark: root.isDark
             }
-            Qaterial.Icon {
+            UiIcon {
                 anchors.centerIn: parent
-                icon: Qaterial.Icons.arrowLeft
+                name: "arrowLeft"
                 size: 20
-                color: Colors.textSecondary(root.isDark)
+                iconColor: Colors.textSecondary(root.isDark)
             }
             MouseArea {
                 id: backMouse
@@ -60,14 +60,16 @@ Rectangle {
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 2
-            Qaterial.LabelHeadline5 {
+            UiLabel {
+        textType: UiLabel.Headline5
                 text: detail.loggerName
                 color: Colors.textPrimary(root.isDark)
                 font.family: "Inter"
                 font.pixelSize: 24
                 font.weight: Font.Bold
             }
-            Qaterial.LabelBody2 {
+            UiLabel {
+        textType: UiLabel.Body2
                 text: detail.host + ":" + detail.port
                 color: Colors.textSecondary(root.isDark)
                 font.family: "Inter"
@@ -88,11 +90,11 @@ Rectangle {
                 hovered: editMouse.containsMouse
                 isDark: root.isDark
             }
-            Qaterial.Icon {
+            UiIcon {
                 anchors.centerIn: parent
-                icon: Qaterial.Icons.pencil
+                name: "pencil"
                 size: 20
-                color: Colors.textSecondary(root.isDark)
+                iconColor: Colors.textSecondary(root.isDark)
             }
             MouseArea {
                 id: editMouse
@@ -122,11 +124,11 @@ Rectangle {
                     }
                 }
             }
-            Qaterial.Icon {
+            UiIcon {
                 anchors.centerIn: parent
-                icon: Qaterial.Icons.trashCan
+                name: "trashCan"
                 size: 20
-                color: delMouse.containsMouse ? "#ef4444" : Colors.textSecondary(root.isDark)
+                iconColor: delMouse.containsMouse ? "#ef4444" : Colors.textSecondary(root.isDark)
             }
             MouseArea {
                 id: delMouse

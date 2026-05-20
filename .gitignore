@@ -48,8 +48,3 @@ resources/native/windows/*.dll
 *.build/
 *.dist/
 *.onefile-build/
-
-# Qaterial (optional; clone + local build — see README)
-vendor/Qaterial/
-vendor/qaterial-build/
-vendor/qaterial-install/

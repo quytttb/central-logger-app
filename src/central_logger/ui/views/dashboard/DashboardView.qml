@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 import CentralLogger.Core 1.0
 
 import "../../"
@@ -15,9 +14,11 @@ import "../../components/common"
 Item {
     id: view
 
-    property bool isDark: Qaterial.Style.theme === Qaterial.Style.Theme.Dark
+    property bool isDark: true
     property var dashboardController: null
     property var recentEventsModel: null
+
+    signal selectLogger(int loggerId)
 
     readonly property int gridGap: 24
     readonly property int gridMargin: 32
@@ -64,14 +65,14 @@ Item {
                     Layout.fillWidth: true
                     statTitle: "Total Loggers"
                     value: String(AppState.totalLoggers)
-                    iconSource: Qaterial.Icons.server
+                    iconName: "server"
                     isDark: view.isDark
                 }
                 StatCard {
                     Layout.fillWidth: true
                     statTitle: "Online Loggers"
                     value: String(AppState.onlineLoggers)
-                    iconSource: Qaterial.Icons.wifi
+                    iconName: "wifi"
                     isDark: view.isDark
                     trend: AppState.totalLoggers > 0 && AppState.onlineLoggers === AppState.totalLoggers ? "100% stable" : "Some offline"
                     trendColor: AppState.totalLoggers > 0 && AppState.onlineLoggers === AppState.totalLoggers ? "green" : "amber"
@@ -80,7 +81,7 @@ Item {
                     Layout.fillWidth: true
                     statTitle: "Active Alarms"
                     value: String(AppState.alarmCount)
-                    iconSource: Qaterial.Icons.alertOutline
+                    iconName: "alertOutline"
                     isDark: view.isDark
                     trend: AppState.alarmCount > 0 ? "Requires attention" : "All clear"
                     trendColor: AppState.alarmCount > 0 ? "red" : "green"
@@ -123,6 +124,7 @@ Item {
                     isDark: view.isDark
                     dashboardController: view.dashboardController
                     eventsModel: view.recentEventsModel
+                    onSelectLogger: function (id) { view.selectLogger(id) }
                     Behavior on Layout.preferredWidth {
                         NumberAnimation {
                             duration: UiMotion.durationNormal
@@ -161,6 +163,7 @@ Item {
                     isDark: view.isDark
                     dashboardController: view.dashboardController
                     eventsModel: view.recentEventsModel
+                    onSelectLogger: function (id) { view.selectLogger(id) }
                 }
             }
 

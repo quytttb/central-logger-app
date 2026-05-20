@@ -1,6 +1,6 @@
 # Central Logger App
 
-Ứng dụng quản lý tập trung các Data Logger qua **Modbus TCP**, xây dựng bằng **PySide6 + Qt Quick (QML)** với **[Qaterial](https://github.com/OlivierLDff/Qaterial)** (Material-style components).
+Ứng dụng quản lý tập trung các Data Logger qua **Modbus TCP**, xây dựng bằng **PySide6 + Qt Quick (QML)** với **Qt Quick Controls 2 (Material)** và wrapper nội bộ (`UiLabel`, `UiIcon`, `Snackbar`).
 
 - **Dev:** Ubuntu (Linux)
 - **Triển khai:** Windows (build bằng `pyside6-deploy` / Nuitka)
@@ -26,14 +26,14 @@ central-logger-app/
 │   ├── viewmodels/         # @QmlElement / @QmlSingleton
 │   ├── controllers/
 │   ├── utils/
-│   └── ui/                 # QML (Qaterial + Qt Quick Controls)
+│   └── ui/                 # QML (QQC2 Material + UiLabel/UiIcon)
 │       ├── main.qml
 │       ├── components/
 │       └── views/
 ├── resources/
 │   ├── resources.qrc
 │   ├── qtquickcontrols2.conf
-│   ├── fonts/              # Roboto, Roboto Mono (bundled app fonts)
+│   ├── fonts/              # Roboto, Roboto Mono, Material Symbols Outlined
 │   └── images/
 ├── scripts/
 │   ├── build_deb.sh          # .deb từ thư mục deploy
@@ -51,17 +51,20 @@ central-logger-app/
 # 1. Tạo venv + cài deps
 python3.12 -m venv .venv
 source .venv/bin/activate
-pip install -e ".[dev]"
+pip install -e ".[dev,test]"
 
 # 2. Biên dịch tài nguyên QML/icons -> module Python
 pyside6-rcc resources/resources.qrc -o src/central_logger/resources_rc.py
 
-# 3. Chạy app (một trong hai)
-python main.py
+# 3. Chạy app (một trong các cách sau)
+python -m central_logger
 # hoặc: python -m central_logger.main
+# hoặc: central-logger
+# hoặc: python main.py   # shim ở thư mục gốc repo (cần pip install -e .)
 
 # 4. Test
-QT_QPA_PLATFORM=offscreen pytest -q
+QT_QPA_PLATFORM=offscreen pytest tests/test_smoke_integration.py::test_qml_main_loads_headless -q
+# toàn bộ suite: QT_QPA_PLATFORM=offscreen pytest -q
 ```
 
 Gỡ lỗi Modbus / UI cập nhật trạng thái: chạy với `CENTRAL_LOGGER_DEBUG=1` để xem log (`central_logger.services`, v.v.). Nếu Data Logger chỉ listen IPv4, dùng host `127.0.0.1` thay vì `localhost`.
@@ -71,23 +74,16 @@ Gỡ lỗi Modbus / UI cập nhật trạng thái: chạy với `CENTRAL_LOGGER_
 - **Linux dev:** `sudo apt install libzbar0`
 - **Windows build:** copy `libzbar-64.dll` (+ `libiconv.dll`) vào [`resources/native/windows/`](resources/native/windows/README.md), rồi deploy — DLL được bundle cạnh `.exe` (`native/windows/`). Script: `scripts\stage_zbar_windows.ps1 -Source "C:\path\to\zbar\bin"`.
 
-> Nếu dùng `uv` (nhanh hơn): `uv sync --extra dev` rồi `uv run python -m central_logger.main`.
+> Nếu dùng `uv` (nhanh hơn): `uv sync --extra dev --extra test` rồi `uv run python -m central_logger`.
 
-## Giao diện Qaterial
+## Giao diện (QML)
 
-- **Màu / typography:** `Qaterial.Style` và `Qaterial.Style.colorTheme` trong QML; brand primary `#000666`, accent `#4C56AF` được gán trong `main.qml` (`Component.onCompleted`).
-- **Thanh tiêu đề:** cửa sổ **frameless** + nút Minimize / Maximize / Close trong `AppTopBar.qml`.
-- **[Qaterial](https://github.com/OlivierLDff/Qaterial)** (Qt 6, C++ + QML): không có wheel pip; cần **CMake** build vào prefix cục bộ.
-  1. `chmod +x scripts/fetch_qaterial.sh scripts/build_qaterial.sh`
-  2. `./scripts/fetch_qaterial.sh` — clone vào `vendor/Qaterial/` (đã `.gitignore`, không bắt buộc commit).
-  3. Cài toolchain Qt6 dev trên Ubuntu (đã dùng `pkexec`): `qt6-base-dev`, `qt6-declarative-dev`, `qt6-svg-dev`, `qt6-5compat-dev`, `qt6-shadertools-dev`, `cmake`, `ninja-build`, `g++`.
-  4. `CMAKE_PREFIX_PATH=/usr ./scripts/build_qaterial.sh` — build với **Qt hệ thống** (PySide6 wheel **không** kèm `Qt6Config.cmake`). Script thêm `-DCMAKE_POSITION_INDEPENDENT_CODE=ON` để link `libQaterial.so` với QOlm tĩnh (`-fPIC`).
-  5. Chạy app: `main.py` tự nạp `libQaterial.so` qua `ctypes`, thêm `LD_LIBRARY_PATH` → `vendor/qaterial-install/lib` **trước khi** import Qt, và `addImportPath` → `vendor/qaterial-build/qml` (nơi có `Qaterial/qmldir`). Hoặc đặt `QATERIAL_QML_PATH` trỏ tới thư mục cha của `Qaterial/`.
-  6. Trong QML: `import Qaterial ...` theo [Quickstart](https://olivierldff.github.io/Qaterial/Quickstart.html).
-
-**Lưu ý phiên bản Qt:** PySide6 trong `.venv` có thể là Qt **6.11**; thư viện hệ thống vừa cài là Qt **6.10**. `libQaterial.so` link với 6.10 — nếu gặp lỗi load plugin khi chạy app, cần **trùng major/minor** (cài Qt6 dev cùng bản với PySide, hoặc build Qaterial trong môi trường Qt trùng với wheel).
-
-Nếu chưa build Qaterial, QML `import Qaterial` sẽ thất bại — cần build theo các bước trên.
+- **Style:** `QQuickStyle.setStyle("Material")` + [`resources/qtquickcontrols2.conf`](resources/qtquickcontrols2.conf) (primary `#000666`, accent `#4C56AF`).
+- **Theme:** `window.isDark` + [`Colors.qml`](src/central_logger/ui/Colors.qml) (zinc/shadcn palette); `Material.theme` đồng bộ tại root `main.qml`.
+- **Components:** `UiLabel`, `UiIcon`, `Snackbar` trong [`src/central_logger/ui/components/common/`](src/central_logger/ui/components/common/) — `import components`.
+- **Icons:** font **Material Symbols Outlined** (`resources/fonts/MaterialSymbols/`), map trong `MaterialIcons.qml`.
+- **Typography / fonts:** Roboto + Roboto Mono load trong `main.py`; không cần build native QML plugin.
+- **Thanh tiêu đề:** cửa sổ **frameless** + nút Minimize / Close trong `AppTopBar.qml`.
 
 ## Modbus TCP Map v1 (hợp đồng đọc)
 
@@ -143,13 +139,16 @@ Tham khảo `pysidedeploy.spec` (`--include-data-dir=resources/native/windows=na
 Prerequisite: thư mục deploy sau `pyside6-deploy`, và trên máy cài `libzbar0` (runtime, không bundle như Windows).
 
 ```bash
-# Cách 1 (khuyến nghị khi Nuitka/Py3.14 lỗi patchelf): venv deploy + .deb
-./scripts/build.sh deb
-# hoặc tách bước:
+# Cách 1 (khuyến nghị): menu tương tác — chọn .deb rồi PATCH / MINOR / MAJOR
+./scripts/build.sh
+# Hoặc không tương tác: ./scripts/build.sh deb patch
+# Tách bước:
+# uv run python scripts/bump_version.py bump patch
 # ./scripts/build_deploy_venv.sh && ./scripts/build_deb.sh deploy
 
 # Cách 2: Nuitka / pyside6-deploy (nhỏ hơn; cần Python 3.13 + patchelf hệ thống)
 pyside6-rcc resources/resources.qrc -o src/central_logger/resources_rc.py
+uv run python scripts/bump_version.py bump patch
 pyside6-deploy src/central_logger/main.py
 ./scripts/build_deb.sh deploy
 
@@ -165,10 +164,13 @@ App cài tại `/opt/central-logger/`, lệnh `central-logger`, shortcut trong m
 3. Chạy:
 
 ```powershell
-.\scripts\build_msi.ps1 -DeployDir deploy
+.\scripts\build.ps1
+# Hoặc: .\scripts\build.ps1 msi patch -DeployDir deploy
 ```
 
-Output: `dist\CentralLogger-<version>-win64.msi`.
+Output: `dist\CentralLogger-<version>-win64.msi` (version từ `pyproject.toml` sau bump).
+
+Hoặc đã bump tay: `.\scripts\build_msi.ps1 -DeployDir deploy` (tùy chọn `-Version` override).
 
 ### Kiểm tra sau cài (smoke test)
 
@@ -177,9 +179,28 @@ Output: `dist\CentralLogger-<version>-win64.msi`.
 - Modbus poll (online/offline)
 - Windows full build: quét QR trong Add Logger
 
-### Tăng version
+### Tăng version (SemVer)
 
-Sửa `version` trong `pyproject.toml`, rồi build lại `.deb` / `.msi` (script đọc version từ đó hoặc tham số `-Version` trên MSI).
+Một nguồn: `version` trong [`pyproject.toml`](pyproject.toml). Build release **bắt buộc** chọn mức bump:
+
+| Tham số | Ý nghĩa | Ví dụ `0.1.0` → |
+|---------|---------|------------------|
+| `patch` | Bản vá | `0.1.1` |
+| `minor` | Tính năng tương thích ngược | `0.2.0` |
+| `major` | Breaking change | `1.0.0` |
+
+```bash
+./scripts/build.sh              # menu: .deb → chọn PATCH / MINOR / MAJOR
+uv run python scripts/bump_version.py show
+```
+
+```powershell
+.\scripts\build.ps1             # menu: MSI → chọn PATCH / MINOR / MAJOR
+```
+
+Vẫn hỗ trợ dòng lệnh: `./scripts/build.sh deb patch`, `.\scripts\build.ps1 msi minor -DeployDir deploy`
+
+Chỉ tạo `deploy/` (không đóng gói): chọn mục 2 trong menu, hoặc `./scripts/build.sh deploy-venv`
 
 Chi tiết đo hiệu năng / LOC: [`docs/perf-baseline.md`](docs/perf-baseline.md).
 

@@ -39,6 +39,7 @@ def init_db() -> None:
     _ensure_logger_info_columns(engine)
     _migrate_poll_interval_seconds(engine)
     _ensure_sensor_reading_indexes(engine)
+    _drop_unused_app_settings_columns(engine)
     _seed_app_settings()
 
 
@@ -127,6 +128,23 @@ def _ensure_sensor_reading_indexes(engine) -> None:
                     "ON sensor_reading (recorded_at)"
                 )
             )
+
+
+_UNUSED_APP_SETTINGS_COLUMNS = ("default_map_zoom", "alert_email_contacts")
+
+
+def _drop_unused_app_settings_columns(engine) -> None:
+    """Drop legacy columns removed from AppSettings (SQLite 3.35+)."""
+    insp = inspect(engine)
+    if "app_settings" not in insp.get_table_names():
+        return
+    existing = {col["name"] for col in insp.get_columns("app_settings")}
+    to_drop = [c for c in _UNUSED_APP_SETTINGS_COLUMNS if c in existing]
+    if not to_drop:
+        return
+    with engine.begin() as conn:
+        for col in to_drop:
+            conn.execute(text(f"ALTER TABLE app_settings DROP COLUMN {col}"))
 
 
 @contextmanager

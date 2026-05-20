@@ -1,0 +1,23 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file alias="qtquickcontrols2.conf">qtquickcontrols2.conf</file>
+    </qresource>
+    <qresource prefix="/ui">
+        <file alias="main.qml">../src/central_logger/ui/main.qml</file>
+        <file alias="qmldir">../src/central_logger/ui/qmldir</file>
+        <file alias="UiMotion.qml">../src/central_logger/ui/UiMotion.qml</file>
+        <file alias="Colors.qml">../src/central_logger/ui/Colors.qml</file>
+        <file alias="components/qmldir">../src/central_logger/ui/components/qmldir</file>
+        <file alias="views/qmldir">../src/central_logger/ui/views/qmldir</file>
+    </qresource>
+    <qresource prefix="/fonts">
+        <file alias="Roboto/Roboto-Regular.ttf">fonts/Roboto/Roboto-Regular.ttf</file>
+        <file alias="Roboto/Roboto-Medium.ttf">fonts/Roboto/Roboto-Medium.ttf</file>
+        <file alias="RobotoMono/RobotoMono-Regular.ttf">fonts/RobotoMono/RobotoMono-Regular.ttf</file>
+        <file alias="MaterialSymbols/MaterialSymbolsOutlined.ttf">fonts/MaterialSymbols/MaterialSymbolsOutlined.ttf</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file alias="logo.svg">images/4M Technologies Blue.svg</file>
+    </qresource>
+</RCC>

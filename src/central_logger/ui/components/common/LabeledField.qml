@@ -1,9 +1,9 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../.."
+import components
 
 ColumnLayout {
     id: root
@@ -34,7 +34,8 @@ ColumnLayout {
         input.focus = false
     }
 
-    Qaterial.LabelBody2 {
+    UiLabel {
+        textType: UiLabel.Body2
         text: root.label
         color: Colors.textPrimary(root.isDark)
         font.family: root.fontFamily

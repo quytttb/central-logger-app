@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Validate packaging scripts; build .deb only when deploy/ exists (post pyside6-deploy).
+# Validate packaging scripts; build .deb from deploy/ (does not bump version — use build.sh deb patch for releases).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

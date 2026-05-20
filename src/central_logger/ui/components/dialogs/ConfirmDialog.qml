@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../.."
 import "../common"
+import components
 
 /*
  * Shadcn-style confirmation dialog — modal overlay.
@@ -26,7 +26,8 @@ BaseDialog {
         Layout.fillWidth: true
         Layout.preferredHeight: bodyText.implicitHeight + 48
 
-        Qaterial.LabelBody2 {
+        UiLabel {
+        textType: UiLabel.Body2
             id: bodyText
             anchors.left: parent.left
             anchors.right: parent.right

@@ -1,13 +1,13 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 import CentralLogger.Core 1.0
 
 import "../../"
 import "../../components/common"
 import "../../components/cards"
 import "../../components/dialogs"
+import components
 
 /*
  * Loggers list page — Shadcn style tabular view.
@@ -15,7 +15,7 @@ import "../../components/dialogs"
 Item {
     id: view
 
-    property bool isDark: Qaterial.Style.theme === Qaterial.Style.Theme.Dark
+    property bool isDark: true
     property LoggerListModel loggersModel: null
     property DashboardController dashboardController: null
     property string searchQuery: ""
@@ -49,7 +49,7 @@ Item {
                 title: "Edge Loggers"
                 subtitle: "Manage and monitor all connected endpoint devices."
                 actionText: "Add Logger"
-                actionIcon: Qaterial.Icons.plus
+                iconName: "plus"
                 onActionClicked: addLoggerDialog.open()
             }
 
@@ -134,7 +134,8 @@ Item {
                         Layout.fillWidth: true
                         Layout.preferredHeight: (!view.loggersModel || view.loggersModel.rowCountValue === 0) ? 120 : 0
                         visible: !view.loggersModel || view.loggersModel.rowCountValue === 0
-                        Qaterial.LabelBody2 {
+                        UiLabel {
+        textType: UiLabel.Body2
                             anchors.centerIn: parent
                             text: "No loggers configured. Click \"Add Logger\" to get started."
                             color: Colors.textMuted(view.isDark)

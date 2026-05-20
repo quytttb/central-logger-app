@@ -1,9 +1,9 @@
 import QtQuick
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../../"
 import "../../components/cards"
+import components
 
 PanelCard {
     id: root
@@ -58,7 +58,8 @@ PanelCard {
         Layout.fillWidth: true
         spacing: 4
 
-        Qaterial.LabelCaption {
+        UiLabel {
+        textType: UiLabel.Caption
             text: parent.label
             color: Colors.textMuted(parent.isDark)
             font.family: "Roboto"
@@ -66,7 +67,8 @@ PanelCard {
             font.weight: Font.Medium
             font.letterSpacing: 0.6
         }
-        Qaterial.LabelBody2 {
+        UiLabel {
+        textType: UiLabel.Body2
             text: parent.value
             color: Colors.textPrimary(parent.isDark)
             font.family: parent.isMono ? "Roboto Mono" : "Roboto"

@@ -76,6 +76,4 @@ class AppSettings(SQLModel, table=True):
     theme: str = Field(default="dark", max_length=16)
     system_timezone: str = Field(default=DEFAULT_SYSTEM_TIMEZONE, max_length=64)
     data_retention_days: int = Field(default=30)
-    default_map_zoom: int = Field(default=12)
     maintenance_mode: bool = Field(default=False)
-    alert_email_contacts: str = Field(default="", max_length=2048, description="Newline-separated emails")

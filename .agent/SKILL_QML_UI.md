@@ -13,7 +13,7 @@ UI của ứng dụng dùng QML. Thay vì nhồi nhét mọi thứ vào một tr
 
 ### 2. Viết mã QML
 - Tạo file `.qml` tại thư mục đã chọn.
-- Bắt đầu với thư viện chuẩn: `import QtQuick`, `import QtQuick.Controls`, `import Qaterial` (nếu có dùng).
+- Bắt đầu với: `import QtQuick`, `import QtQuick.Controls`, `import components` (cho `UiLabel`, `UiIcon`).
 - Đặt `id` đầu tiên, sau đó là định nghĩa các `property`, `signal`.
 - Ưu tiên layout động (anchors, Layouts) hơn là kích thước tĩnh (x, y, width cố định).
 

@@ -1,11 +1,11 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../../"
 import "../../components/common"
 import "../../components/cards"
+import components
 
 PanelCard {
     id: root
@@ -87,7 +87,8 @@ PanelCard {
                     anchors.leftMargin: 24
                     anchors.rightMargin: 24
                     spacing: 0
-                    Qaterial.LabelCaption {
+                    UiLabel {
+        textType: UiLabel.Caption
                         Layout.preferredWidth: 60
                         text: String(modelData.sensor_id)
                         color: Colors.textSecondary(root.isDark)
@@ -97,7 +98,8 @@ PanelCard {
                     ColumnLayout {
                         Layout.fillWidth: true
                         spacing: 2
-                        Qaterial.LabelBody2 {
+                        UiLabel {
+        textType: UiLabel.Body2
                             Layout.fillWidth: true
                             text: modelData.name || modelData.type || ("Sensor " + modelData.sensor_id)
                             font.family: "Roboto"
@@ -109,7 +111,8 @@ PanelCard {
                             )
                             elide: Text.ElideRight
                         }
-                        Qaterial.LabelCaption {
+                        UiLabel {
+        textType: UiLabel.Caption
                             visible: modelData.sensor_type && modelData.sensor_type.length > 0
                             text: modelData.sensor_type
                             color: Colors.textMuted(root.isDark)
@@ -117,7 +120,8 @@ PanelCard {
                             font.pixelSize: 11
                         }
                     }
-                    Qaterial.LabelBody2 {
+                    UiLabel {
+        textType: UiLabel.Body2
                         Layout.preferredWidth: 100
                         text: _valueText()
                         color: (dstatus === "ALARM" || modelData.alarm)
@@ -129,7 +133,8 @@ PanelCard {
                         font.pixelSize: 14
                         font.weight: (dstatus === "ALARM" || modelData.alarm) ? Font.Bold : Font.Normal
                     }
-                    Qaterial.LabelCaption {
+                    UiLabel {
+        textType: UiLabel.Caption
                         Layout.preferredWidth: 72
                         text: _unitText()
                         color: Colors.textMuted(root.isDark)

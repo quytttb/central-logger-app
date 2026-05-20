@@ -1,7 +1,7 @@
 import QtQuick
-import Qaterial 1.0 as Qaterial
 
 import "../.."
+import components
 
 Item {
     id: root
@@ -13,7 +13,8 @@ Item {
 
     implicitHeight: rowHeight
 
-    Qaterial.LabelCaption {
+    UiLabel {
+        textType: UiLabel.Caption
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: root.alignment === Text.AlignRight ? undefined : parent.left
         anchors.right: root.alignment === Text.AlignRight ? parent.right : undefined

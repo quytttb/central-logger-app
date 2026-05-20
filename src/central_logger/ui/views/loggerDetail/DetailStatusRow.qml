@@ -1,9 +1,9 @@
 import QtQuick
 import QtQuick.Layouts
-import Qaterial 1.0 as Qaterial
 
 import "../../"
 import "../../components/common"
+import components
 
 RowLayout {
     property string label: ""
@@ -14,7 +14,8 @@ RowLayout {
     Layout.fillWidth: true
     Layout.preferredHeight: 32
 
-    Qaterial.LabelBody2 {
+    UiLabel {
+        textType: UiLabel.Body2
         text: parent.label
         Layout.fillWidth: true
         color: Colors.textSecondary(parent.isDark)
