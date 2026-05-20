@@ -82,6 +82,12 @@ def qr_scan_unavailable_reason() -> str:
     try:
         import pyzbar.pyzbar  # noqa: F401
         from PIL import Image  # noqa: F401
-    except ImportError:
+    except ImportError as exc:
+        msg = str(exc).lower()
+        if "zbar" in msg or "shared library" in msg:
+            if sys.platform == "darwin":
+                return "QR scan requires ZBar (e.g. brew install zbar)."
+            if sys.platform != "win32":
+                return "QR scan requires libzbar0 (e.g. sudo apt install libzbar0)."
         return "QR scan requires pyzbar and Pillow (reinstall the app package)."
     return "QR scan is not available."

@@ -6,14 +6,20 @@ import json
 import logging
 from typing import Any
 
-from central_logger.controllers.rest_facade import RestEndpoint, build_endpoint_from_row, normalize_host
+from central_logger.controllers.rest_facade import (
+    RestEndpoint,
+    build_endpoint_from_row,
+)
 from central_logger.db.models import LoggerInfo
 from central_logger.services import (
     ConfigResponse,
     LoggerConfigClient,
     ReportDownloadResult,
 )
-from central_logger.services.sensor_catalog import extract_sensors_from_config_raw, parse_catalog_from_rest
+from central_logger.services.sensor_catalog import (
+    extract_sensors_from_config_raw,
+    parse_catalog_from_rest,
+)
 
 log = logging.getLogger(__name__)
 

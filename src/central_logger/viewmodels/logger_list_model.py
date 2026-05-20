@@ -1,7 +1,7 @@
 """QAbstractListModel cho danh sách Data Logger - hiển thị trong GridView/ListView."""
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import IntEnum
 
 from PySide6.QtCore import (

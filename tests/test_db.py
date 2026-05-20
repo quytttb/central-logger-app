@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import pytest
-from sqlmodel import SQLModel, Session, create_engine, select
+from sqlmodel import Session, SQLModel, create_engine, select
 
 from central_logger.db import models
 

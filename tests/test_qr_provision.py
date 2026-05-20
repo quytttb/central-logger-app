@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -13,10 +12,15 @@ from central_logger.services.qr_provision import (
     import_provision_from_qr_image,
     parse_provision_payload,
 )
+from central_logger.utils.native_libs import is_qr_scan_available, qr_scan_unavailable_reason
 
-pytest.importorskip("pyzbar")
-pytest.importorskip("PIL")
 qrcode = pytest.importorskip("qrcode")
+
+
+@pytest.fixture
+def require_qr_scan():
+    if not is_qr_scan_available():
+        pytest.skip(qr_scan_unavailable_reason())
 
 
 def _sample_payload() -> dict:
@@ -53,7 +57,7 @@ def test_parse_requires_token():
         parse_provision_payload(json.dumps(bad))
 
 
-def test_decode_qr_roundtrip(tmp_path: Path):
+def test_decode_qr_roundtrip(require_qr_scan, tmp_path: Path):
     payload = json.dumps(_sample_payload(), separators=(",", ":"))
     img_path = tmp_path / "provision.png"
     qrcode.make(payload).save(str(img_path))
@@ -62,7 +66,7 @@ def test_decode_qr_roundtrip(tmp_path: Path):
     assert prov.modbus_unit_id == 2
 
 
-def test_import_from_image_wrapper(tmp_path: Path):
+def test_import_from_image_wrapper(require_qr_scan, tmp_path: Path):
     payload = json.dumps(_sample_payload(), separators=(",", ":"))
     img_path = tmp_path / "provision.png"
     qrcode.make(payload).save(str(img_path))

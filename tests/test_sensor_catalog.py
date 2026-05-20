@@ -16,7 +16,6 @@ from central_logger.services.sensor_catalog import (
 def test_extract_sensors_top_level_and_nested():
     top = {"sensors": [{"id": 1, "name": "A", "sensor_type": "ANALOG"}]}
     assert len(parse_catalog_from_rest(extract_sensors_from_config_raw(top))) == 1
-    nested = {"config": {"station_code": "X"}, "sensors": []}
     nested_cfg = {
         "api_version": 1,
         "revision": 1,

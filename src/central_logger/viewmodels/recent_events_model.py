@@ -42,7 +42,7 @@ class RecentEventsModel(QAbstractListModel):
             int(RecentEventRoles.LoggerIdRole): b"loggerId",
         }
 
-    def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:  # type: ignore[override]
+    def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:  # noqa: B008
         if parent.isValid():
             return 0
         return len(self._events)

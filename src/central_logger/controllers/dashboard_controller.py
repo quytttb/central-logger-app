@@ -4,20 +4,18 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from typing import Any
 
-from PySide6.QtCore import Property, QObject, QTimer, Qt, Signal, Slot
+from PySide6.QtCore import Property, QObject, Qt, QTimer, Signal, Slot
 from PySide6.QtQml import QmlElement
 
-from central_logger.controllers import chart_queries
-from central_logger.controllers import logger_ops
+from central_logger.controllers import chart_queries, logger_ops
 from central_logger.controllers.event_journal import EventJournal
 from central_logger.controllers.modbus_bridge import ModbusBridge
 from central_logger.controllers.rest_coordinator import RestCoordinator
 from central_logger.controllers.rest_facade import build_endpoint_from_row, normalize_host
 from central_logger.controllers.rest_scheduler import RestScheduler
 from central_logger.controllers.sensor_state import SensorState
-from central_logger.db import LoggerInfo, init_db
+from central_logger.db import init_db
 from central_logger.db.retention import purge_old_data
 from central_logger.services import ConfigResponse, LoggerConfig
 from central_logger.services.qr_provision import import_provision_from_qr_image

@@ -46,6 +46,7 @@ def test_controller_crud_and_charts(qtbot, fresh_db):
   ctrl.addLogger("Smoke A", "127.0.0.1", 5020, 1, 2, 8080, "", True, 2.0, "", "")
   with get_session() as session:
     from sqlmodel import select
+
     from central_logger.db import LoggerInfo
 
     rows = list(session.exec(select(LoggerInfo)).all())
