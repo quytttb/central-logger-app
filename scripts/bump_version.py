@@ -10,7 +10,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PYPROJECT = ROOT / "pyproject.toml"
+UV_LOCK = ROOT / "uv.lock"
 _VERSION_LINE = re.compile(r'(?m)^version\s*=\s*"([^"]*)"')
+_LOCK_PKG_VERSION = re.compile(
+    r'(\[\[package\]\]\nname = "central-logger-app"\nversion = )"[^"]*"',
+)
 
 
 def _parse_version(raw: str) -> tuple[int, int, int]:
@@ -25,12 +29,26 @@ def read_version() -> str:
     return str(data["project"]["version"])
 
 
+def sync_uv_lock(version: str) -> None:
+    """Keep uv.lock [[package]] central-logger-app version aligned with pyproject.toml."""
+    if not UV_LOCK.is_file():
+        return
+    text = UV_LOCK.read_text(encoding="utf-8")
+    new_text, count = _LOCK_PKG_VERSION.subn(rf'\1"{version}"', text, count=1)
+    if count != 1:
+        raise RuntimeError(
+            'could not find central-logger-app package version in uv.lock; run "uv lock"'
+        )
+    UV_LOCK.write_text(new_text, encoding="utf-8")
+
+
 def write_version(version: str) -> None:
     text = PYPROJECT.read_text(encoding="utf-8")
     new_text, count = _VERSION_LINE.subn(f'version = "{version}"', text, count=1)
     if count != 1:
         raise RuntimeError("could not find exactly one version = line in pyproject.toml")
     PYPROJECT.write_text(new_text, encoding="utf-8")
+    sync_uv_lock(version)
 
 
 def bump(level: str) -> str:

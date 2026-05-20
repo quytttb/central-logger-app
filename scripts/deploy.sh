@@ -61,8 +61,17 @@ _confirm() {
 }
 
 _git_dirty_warning() {
-  if [[ -n "$(git status --porcelain 2>/dev/null)" ]]; then
-    echo "⚠ Working tree chưa sạch (git status có thay đổi)."
+  local dirty
+  dirty="$(git status --porcelain 2>/dev/null)" || return 0
+  [[ -z "${dirty}" ]] && return 0
+  echo "⚠ Working tree chưa sạch (các file sau chưa commit):"
+  echo "${dirty}" | sed 's/^/    /'
+}
+
+_stage_release_files() {
+  git add pyproject.toml
+  if [[ -f "${ROOT}/uv.lock" ]]; then
+    git add uv.lock
   fi
 }
 
@@ -116,17 +125,17 @@ _do_commit() {
   tag="$(_tag_name)"
   msg="chore: release ${tag}"
   _git_dirty_warning
-  if git diff --quiet -- pyproject.toml 2>/dev/null && \
-     git diff --cached --quiet -- pyproject.toml 2>/dev/null; then
-    echo "pyproject.toml không có thay đổi — bỏ qua commit."
+  if git diff --quiet -- pyproject.toml uv.lock 2>/dev/null && \
+     git diff --cached --quiet -- pyproject.toml uv.lock 2>/dev/null; then
+    echo "pyproject.toml / uv.lock không có thay đổi — bỏ qua commit."
     return 0
   fi
-  git add pyproject.toml
-  if _confirm "Commit pyproject.toml với message: ${msg}?"; then
+  _stage_release_files
+  if _confirm "Commit pyproject.toml (+ uv.lock nếu đổi) với message: ${msg}?"; then
     git commit -m "${msg}"
     echo "Đã commit."
   else
-    echo "Đã stage pyproject.toml; chưa commit."
+    echo "Đã stage pyproject.toml / uv.lock; chưa commit."
   fi
 }
 
@@ -178,7 +187,7 @@ _do_release() {
     echo "Cancelled."
     return 1
   fi
-  git add pyproject.toml
+  _stage_release_files
   git commit -m "chore: release ${tag}" || {
     echo "Commit thất bại (có thể không có thay đổi?)." >&2
     return 1

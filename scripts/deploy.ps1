@@ -52,8 +52,16 @@ function Test-Confirm {
 
 function Show-DirtyWarning {
     $status = git status --porcelain 2>$null
-    if ($status) {
-        Write-Host "Warning: working tree chua sach (git status co thay doi)." -ForegroundColor Yellow
+    if (-not $status) { return }
+    Write-Host "Warning: working tree chua sach (cac file sau chua commit):" -ForegroundColor Yellow
+    $status | ForEach-Object { Write-Host "    $_" }
+}
+
+function Add-ReleaseFiles {
+    git add pyproject.toml
+    $lock = Join-Path $Root "uv.lock"
+    if (Test-Path $lock) {
+        git add uv.lock
     }
 }
 
@@ -125,8 +133,8 @@ function Invoke-DoCommit {
         Write-Host "pyproject.toml khong co thay doi — bo qua commit."
         return
     }
-    git add pyproject.toml
-    if (Test-Confirm "Commit pyproject.toml voi message: $msg") {
+    Add-ReleaseFiles
+    if (Test-Confirm "Commit pyproject.toml (+ uv.lock neu doi) voi message: $msg") {
         git commit -m $msg
         Write-Host "Da commit."
     } else {
@@ -178,7 +186,7 @@ function Invoke-DoRelease {
         Write-Host "Cancelled."
         return
     }
-    git add pyproject.toml
+    Add-ReleaseFiles
     git commit -m "chore: release $tag"
     if ($LASTEXITCODE -ne 0) {
         throw "Commit that bai (co the khong co thay doi?)."
