@@ -42,7 +42,9 @@ central-logger-app/
 │   ├── build_deploy_venv.sh  # deploy/ venv (Linux .deb)
 │   ├── build_msi.ps1         # .msi (Windows, cần WiX)
 │   ├── bump_version.py       # SemVer → pyproject.toml
-│   └── stage_zbar_windows.ps1
+│   ├── stage_zbar_windows.ps1   # auto-download ZBar DLLs (Windows)
+│   ├── build_deploy_windows.ps1 # stage + rcc + pyside6-deploy
+│   └── fetch_zbar_windows.py    # same download (Linux/WSL)
 ├── packaging/windows/        # WiX Product.wxs
 ├── docs/perf-baseline.md
 ├── tests/
@@ -76,7 +78,7 @@ Gỡ lỗi Modbus / UI cập nhật trạng thái: chạy với `CENTRAL_LOGGER_
 **Pairing QR (API token):** Add/Edit Logger → **Scan QR…** (ảnh PNG/JPG từ data-logger). Schema: [`docs/provision-qr-v1.md`](docs/provision-qr-v1.md).
 
 - **Linux dev:** `sudo apt install libzbar0`
-- **Windows build:** copy `libzbar-64.dll` (+ `libiconv.dll`) vào [`resources/native/windows/`](resources/native/windows/README.md), rồi deploy — DLL được bundle cạnh `.exe` (`native/windows/`). Script: `scripts\stage_zbar_windows.ps1 -Source "C:\path\to\zbar\bin"`.
+- **Windows build:** `scripts\stage_zbar_windows.ps1` (tự tải DLL) hoặc `scripts\build_deploy_windows.ps1` — bundle cạnh `.exe` (`native/windows/`). Chi tiết: [`resources/native/windows/README.md`](resources/native/windows/README.md).
 
 > Nếu dùng `uv` (nhanh hơn): `uv sync --extra dev --extra test` rồi `uv run python -m central_logger`.
 
@@ -117,20 +119,22 @@ python -m pip install -U pip
 pip install -e ".[build]"
 ```
 
-**QR scan (tùy chọn):** chỉ cần nếu dùng **Scan QR…** trong Add Logger. Bỏ qua bước này nếu không cần QR — build portable vẫn chạy bình thường.
-
-Cài ZBar x64 (ví dụ tải từ [ZBar trên SourceForge](https://sourceforge.net/projects/zbar/files/)), tìm thư mục chứa `libzbar-64.dll`, rồi thay **đường dẫn thật** (không dùng `C:\path\to\...` trong ví dụ):
+**QR scan (tùy chọn):** script tự tải `libzbar-64.dll` + `libiconv.dll` từ [barcode-reader-dlls](https://github.com/NaturalHistoryMuseum/barcode-reader-dlls/releases/tag/0.1) (checksum trong manifest). **Không** cần cài ZBar thủ công trên máy build.
 
 ```powershell
-# Ví dụ — sửa cho đúng máy bạn:
-powershell -ExecutionPolicy Bypass -File scripts\stage_zbar_windows.ps1 -Source "C:\Program Files\ZBar\bin"
+powershell -ExecutionPolicy Bypass -File scripts\stage_zbar_windows.ps1
 ```
 
-Chi tiết: [`resources/native/windows/README.md`](resources/native/windows/README.md).
+Bỏ QR: `.\scripts\stage_zbar_windows.ps1 -SkipQr` hoặc `.\scripts\build_deploy_windows.ps1 -SkipQr`. Chi tiết: [`resources/native/windows/README.md`](resources/native/windows/README.md).
 
 **Build portable (`deploy\`):**
 
 ```powershell
+# Gọn: stage ZBar (auto) + rcc + deploy
+powershell -ExecutionPolicy Bypass -File scripts\build_deploy_windows.ps1
+
+# Hoặc từng bước:
+powershell -ExecutionPolicy Bypass -File scripts\stage_zbar_windows.ps1
 pyside6-rcc resources\resources.qrc -o src\central_logger\resources_rc.py
 pyside6-deploy src\central_logger\main.py -f
 .\deploy\CentralLogger.exe

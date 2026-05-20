@@ -1,0 +1,16 @@
+{
+  "source": "https://github.com/NaturalHistoryMuseum/barcode-reader-dlls/releases/tag/0.1",
+  "release": "0.1",
+  "files": [
+    {
+      "name": "libzbar-64.dll",
+      "url": "https://github.com/NaturalHistoryMuseum/barcode-reader-dlls/releases/download/0.1/libzbar-64.dll",
+      "sha256": "43ecda0a3e803ffadeab912f5ecaa2655a8a51c6af1c4286bf9ef21cc90a4b04"
+    },
+    {
+      "name": "libiconv.dll",
+      "url": "https://github.com/NaturalHistoryMuseum/barcode-reader-dlls/releases/download/0.1/libiconv.dll",
+      "sha256": "2843567e3fe8c035884dcc6366628ece2f683380e6b1d64763bacf8fc617e17c"
+    }
+  ]
+}
