@@ -60,12 +60,25 @@ _confirm() {
   [[ "${answer}" =~ ^[Yy]$ ]]
 }
 
-_git_dirty_warning() {
-  local dirty
+# Chỉ cảnh báo file lạ — pyproject.toml / uv.lock sẽ commit trong bước release.
+_git_unexpected_dirty_warning() {
+  local dirty line path unexpected=""
   dirty="$(git status --porcelain 2>/dev/null)" || return 0
   [[ -z "${dirty}" ]] && return 0
-  echo "⚠ Working tree chưa sạch (các file sau chưa commit):"
-  echo "${dirty}" | sed 's/^/    /'
+  while IFS= read -r line; do
+    [[ -z "${line}" ]] && continue
+    path="${line##* }"
+    if [[ "${path}" == *" -> "* ]]; then
+      path="${path##* -> }"
+    fi
+    case "${path}" in
+      pyproject.toml | uv.lock) continue ;;
+      *) unexpected+="${line}"$'\n' ;;
+    esac
+  done <<< "${dirty}"
+  [[ -z "${unexpected}" ]] && return 0
+  echo "⚠ Còn thay đổi chưa commit (ngoài version / uv.lock):"
+  printf '%s' "${unexpected}" | sed 's/^/    /'
 }
 
 _stage_release_files() {
@@ -124,7 +137,7 @@ _do_commit() {
   ver="$(_current_version)"
   tag="$(_tag_name)"
   msg="chore: release ${tag}"
-  _git_dirty_warning
+  _git_unexpected_dirty_warning
   if git diff --quiet -- pyproject.toml uv.lock 2>/dev/null && \
      git diff --cached --quiet -- pyproject.toml uv.lock 2>/dev/null; then
     echo "pyproject.toml / uv.lock không có thay đổi — bỏ qua commit."
@@ -147,7 +160,7 @@ _do_tag() {
     echo "Tag ${tag} đã tồn tại." >&2
     return 1
   fi
-  _git_dirty_warning
+  _git_unexpected_dirty_warning
   if _confirm "Tạo annotated tag ${tag}?"; then
     git tag -a "${tag}" -m "Release ${tag}"
     echo "Đã tạo tag ${tag}"
@@ -182,8 +195,8 @@ _do_release() {
   tag="v${ver}"
   echo ""
   echo "Phát hành: version ${ver} → tag ${tag} → push ${REMOTE}"
-  _git_dirty_warning
-  if ! _confirm "Tiếp tục (commit → tag → push)?"; then
+  _git_unexpected_dirty_warning
+  if ! _confirm "Tiếp tục (commit pyproject.toml + uv.lock → tag → push)?"; then
     echo "Cancelled."
     return 1
   fi

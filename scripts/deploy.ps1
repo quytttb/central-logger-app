@@ -50,11 +50,21 @@ function Test-Confirm {
     return $answer -match '^[Yy]$'
 }
 
-function Show-DirtyWarning {
+function Show-UnexpectedDirtyWarning {
     $status = git status --porcelain 2>$null
     if (-not $status) { return }
-    Write-Host "Warning: working tree chua sach (cac file sau chua commit):" -ForegroundColor Yellow
-    $status | ForEach-Object { Write-Host "    $_" }
+    $unexpected = @()
+    foreach ($line in $status) {
+        $path = ($line -replace '^..\s+', '').Trim()
+        if ($path -match ' -> ') {
+            $path = ($path -split ' -> ', 2)[1].Trim()
+        }
+        if ($path -in @('pyproject.toml', 'uv.lock')) { continue }
+        $unexpected += $line
+    }
+    if ($unexpected.Count -eq 0) { return }
+    Write-Host "Warning: con thay doi chua commit (ngoai version / uv.lock):" -ForegroundColor Yellow
+    $unexpected | ForEach-Object { Write-Host "    $_" }
 }
 
 function Add-ReleaseFiles {
@@ -124,7 +134,7 @@ function Invoke-DoCommit {
     $ver = Get-ProjectVersion
     $tag = "v$ver"
     $msg = "chore: release $tag"
-    Show-DirtyWarning
+    Show-UnexpectedDirtyWarning
     git diff --quiet -- pyproject.toml 2>$null
     $unstaged = $LASTEXITCODE -eq 0
     git diff --cached --quiet -- pyproject.toml 2>$null
@@ -148,7 +158,7 @@ function Invoke-DoTag {
     if (Test-TagExists $tag) {
         throw "Tag $tag da ton tai."
     }
-    Show-DirtyWarning
+    Show-UnexpectedDirtyWarning
     if (Test-Confirm "Tao annotated tag $tag") {
         git tag -a $tag -m "Release $tag"
         Write-Host "Da tao tag $tag"
@@ -181,8 +191,8 @@ function Invoke-DoRelease {
     $tag = "v$ver"
     Write-Host ""
     Write-Host "Phat hanh: version $ver -> tag $tag -> push $Remote"
-    Show-DirtyWarning
-    if (-not (Test-Confirm "Tiep tuc (commit -> tag -> push)?")) {
+    Show-UnexpectedDirtyWarning
+    if (-not (Test-Confirm "Tiep tuc (commit pyproject.toml + uv.lock -> tag -> push)?")) {
         Write-Host "Cancelled."
         return
     }
