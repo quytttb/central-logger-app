@@ -53,7 +53,6 @@ central-logger-app/
 └── .github/workflows/
     ├── ci.yml
     ├── dev-build.yml         # push main → .deb + .msi artifacts (dev)
-    ├── msi-packaging.yml     # push packaging/ → .msi từ cache deploy/ (nhanh)
     └── build-release.yml     # tag v*.*.* → build .deb + .msi → GitHub Release
 ```
 
@@ -270,7 +269,7 @@ Hoặc một lệnh: `.\scripts\build.ps1 msi patch -DeployDir deploy`
 
 Đã bump tay, chỉ đóng MSI: `.\scripts\build_msi.ps1 -DeployDir deploy` (tùy chọn `-Version`).
 
-**MSI build:** `packaging/windows/Package.wxs` harvest `deploy\` qua WiX 7 `<Files>` + `BindPath`. `deploy\` phải đầy đủ (chạy `build_deploy_windows.ps1` trước). CI: workflow **MSI Packaging** dùng cache `deploy/` nếu có (nhanh); nếu chưa có cache thì tự build `deploy/` rồi đóng MSI.
+**MSI build:** `packaging/windows/Package.wxs` harvest `deploy\` qua WiX 7 `<Files>` + `BindPath`. `deploy\` phải đầy đủ (chạy `build_deploy_windows.ps1` trước). CI: workflow **Dev Build** (job `build-msi` trên Windows) hoặc **Build Release** khi push tag.
 
 **Cài thử:** `msiexec /i "dist\CentralLogger-0.1.0-win64.msi"`
 

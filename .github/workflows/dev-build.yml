@@ -18,7 +18,6 @@ on:
       - "pysidedeploy.spec"
       - ".github/workflows/dev-build.yml"
       - ".github/workflows/build-release.yml"
-      - ".github/workflows/msi-packaging.yml"
   workflow_dispatch:
 
 concurrency:
@@ -139,9 +138,3 @@ jobs:
           path: dist/CentralLogger-${{ steps.meta.outputs.version }}-win64.msi
           if-no-files-found: error
           retention-days: 7
-
-      - name: Save deploy/ cache for MSI Packaging workflow
-        uses: actions/cache/save@v4
-        with:
-          path: deploy
-          key: deploy-windows-${{ hashFiles('uv.lock', 'pyproject.toml', 'pysidedeploy.spec') }}
