@@ -1,5 +1,5 @@
 # MSVC + Windows SDK for Nuitka/pyside6-deploy (CI and local Windows builds).
-# - VsDevCmd / VsDevShell amd64: SDK paths for Nuitka
+# - VsDevCmd amd64: SDK/MSVC env for Nuitka
 # - dumpbin on PATH: PySide6 Qt dependency scan
 
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
@@ -66,70 +66,21 @@ function Import-VsDevCmdEnvironment {
     }
 }
 
-function Enter-VsDevShellAmd64 {
-    param([string]$VsInstallPath)
-
-    $launchVs = Join-Path $VsInstallPath "Common7\Tools\Launch-VsDevShell.ps1"
-    if (-not (Test-Path $launchVs)) {
-        return $false
-    }
-
-    # GHA / pwsh may define $Arch='' which breaks Launch-VsDevShell metadata on Import-Module.
-    Remove-Variable -Name Arch -Scope Script -ErrorAction SilentlyContinue
-    Remove-Variable -Name Arch -Scope Global -ErrorAction SilentlyContinue
-
-    Import-Module $launchVs -DisableNameChecking
-    Enter-VsDevShell -VsInstallPath $VsInstallPath -SkipAutomaticLocation -Arch amd64 -HostArch amd64
-    return $true
-}
-
 $sdkComponent = Get-VsWindowsSdkComponent
-$hasWindowsKits = Test-WindowsKits10
-
 if ($sdkComponent) {
     Write-Host "[deploy] Windows SDK component present ($sdkComponent)"
-} elseif ($hasWindowsKits) {
+} elseif (Test-WindowsKits10) {
     Write-Host "[deploy] Windows Kits 10 present (standalone SDK)"
 } else {
-    $onCi = $env:GITHUB_ACTIONS -eq 'true'
-    if ($onCi) {
-        Write-Host "[deploy] No VS SDK component detected on CI; skipping vs_installer (use preinstalled runner SDK + VsDevShell)"
-    } else {
-        $vsInstaller = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
-        $preferredSdk = 'Microsoft.VisualStudio.Component.Windows11SDK.22621'
-        if (Test-Path $vsInstaller) {
-            Write-Host "[deploy] Installing VS component: $preferredSdk"
-            $proc = Start-Process -FilePath $vsInstaller -ArgumentList @(
-                'modify',
-                '--installPath', $installPath,
-                '--add', $preferredSdk,
-                '--quiet',
-                '--wait',
-                '--norestart'
-            ) -PassThru -Wait -NoNewWindow
-            if ($proc.ExitCode -ne 0) {
-                Write-Warning "vs_installer modify failed (exit $($proc.ExitCode)) for $preferredSdk; continuing with VsDevShell"
-            } else {
-                Write-Host "[deploy] Windows SDK component installed."
-                $sdkComponent = Get-VsWindowsSdkComponent
-            }
-        } else {
-            Write-Warning "[deploy] vs_installer.exe not found; cannot add $preferredSdk"
-        }
-        if (-not $sdkComponent) {
-            $hasWindowsKits = Test-WindowsKits10
-        }
-    }
+    Write-Host "[deploy] No Windows SDK detected via vswhere or Windows Kits 10"
 }
 
 if ($env:VSCMD_VER) {
     Write-Host "[deploy] VS dev environment already active ($($env:VSCMD_VER))"
 } elseif (Import-VsDevCmdEnvironment -VsInstallPath $installPath) {
     Write-Host "[deploy] VsDevCmd amd64 active ($installPath)"
-} elseif (Enter-VsDevShellAmd64 -VsInstallPath $installPath) {
-    Write-Host "[deploy] VsDevShell amd64 active ($installPath)"
 } else {
-    Write-Host "[deploy] Could not activate VS dev environment; using PATH-only MSVC tools"
+    Write-Host "[deploy] VsDevCmd failed; using PATH-only MSVC tools"
 }
 
 $hasSdkEnv = -not [string]::IsNullOrWhiteSpace($env:WindowsSdkDir)
