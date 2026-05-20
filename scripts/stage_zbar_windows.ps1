@@ -116,4 +116,4 @@ if (-not (Test-Staged)) {
 
 Write-Host "Done. DLLs staged in $Dest"
 Write-Host "Note: end users of a built deploy/ folder do not need a separate ZBar install."
-Write-Host "      VC++ 2013 Redistributable (x64) may be required on some PCs — see resources/native/windows/README.md"
+Write-Host "      VC++ 2013 Redistributable (x64) may be required on some PCs - see resources/native/windows/README.md"
