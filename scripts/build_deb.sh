@@ -12,6 +12,7 @@ ARCH="amd64"
 STAGING="${ROOT}/dist/deb-staging"
 OUTPUT="${ROOT}/dist/${PKG_NAME}_${VERSION}_${ARCH}.deb"
 LOGO_SVG="${ROOT}/resources/images/4M Technologies Blue.svg"
+ICONS_DIR="${ROOT}/resources/images"
 
 if [[ ! -d "${DEPLOY_DIR}" ]]; then
   echo "Deploy directory not found: ${DEPLOY_DIR}" >&2
@@ -33,8 +34,10 @@ mkdir -p "${STAGING}/DEBIAN" \
   "${STAGING}/opt/central-logger" \
   "${STAGING}/usr/bin" \
   "${STAGING}/usr/share/applications" \
-  "${STAGING}/usr/share/icons/hicolor/scalable/apps" \
-  "${STAGING}/usr/share/icons/hicolor/256x256/apps"
+  "${STAGING}/usr/share/icons/hicolor/scalable/apps"
+for _px in 16 32 48 64 128 256 512; do
+  mkdir -p "${STAGING}/usr/share/icons/hicolor/${_px}x${_px}/apps"
+done
 
 cp -a "${DEPLOY_DIR}/." "${STAGING}/opt/central-logger/"
 EXE_NAME="$(basename "${BIN}")"
@@ -47,14 +50,15 @@ chmod 755 "${STAGING}/usr/bin/central-logger"
 
 if [[ -f "${LOGO_SVG}" ]]; then
   cp "${LOGO_SVG}" "${STAGING}/usr/share/icons/hicolor/scalable/apps/central-logger.svg"
-  if command -v rsvg-convert >/dev/null 2>&1; then
-    rsvg-convert -w 256 -h 256 "${LOGO_SVG}" \
-      -o "${STAGING}/usr/share/icons/hicolor/256x256/apps/central-logger.png"
-  else
-    echo "[build_deb] WARNING: rsvg-convert not found; skipping 256x256 menu icon PNG." >&2
-    echo "[build_deb]          Install: sudo apt install librsvg2-bin" >&2
-  fi
 fi
+for _px in 16 32 48 64 128 256 512; do
+  _src="${ICONS_DIR}/central-logger-${_px}.png"
+  if [[ -f "${_src}" ]]; then
+    cp "${_src}" "${STAGING}/usr/share/icons/hicolor/${_px}x${_px}/apps/central-logger.png"
+  else
+    echo "[build_deb] WARNING: missing ${_src} (run scripts/generate_app_icons.py)" >&2
+  fi
+done
 
 cat > "${STAGING}/usr/share/applications/central-logger.desktop" <<'EOF'
 [Desktop Entry]

@@ -164,7 +164,7 @@ Tham khảo `pysidedeploy.spec` ở **root repo** (`icon` / `python_path` để 
 
 Prerequisite: thư mục deploy sau `pyside6-deploy`, và trên máy cài `libzbar0` (runtime, không bundle như Windows).
 
-**Khi build .deb:** `sudo apt install librsvg2-bin` (tùy chọn, tạo icon PNG 256px cho menu; thiếu thì chỉ có SVG và script in cảnh báo).
+Icon menu: PNG đã có trong `resources/images/` (từ `4M Technologies Blue.png`). Tạo lại các size: `uv run python scripts/generate_app_icons.py`.
 
 ```bash
 # Cách 1 (khuyến nghị): menu tương tác — chọn .deb rồi PATCH / MINOR / MAJOR
