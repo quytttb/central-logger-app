@@ -1,5 +1,5 @@
 # MSVC + Windows SDK for Nuitka/pyside6-deploy (CI and local Windows builds).
-# - VsDevShell amd64: SDK paths Nuitka expects inside Visual Studio
+# - VsDevCmd / VsDevShell amd64: SDK paths for Nuitka
 # - dumpbin on PATH: PySide6 Qt dependency scan
 
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
@@ -41,6 +41,48 @@ function Get-VsWindowsSdkComponent {
     return $null
 }
 
+function Import-VsDevCmdEnvironment {
+    param([string]$VsInstallPath)
+
+    $devCmd = Join-Path $VsInstallPath "Common7\Tools\VsDevCmd.bat"
+    if (-not (Test-Path $devCmd)) {
+        return $false
+    }
+
+    $tempFile = [System.IO.Path]::GetTempFileName()
+    try {
+        cmd.exe /c "`"$devCmd`" -no_logo -arch=amd64 -host_arch=amd64 >nul 2>&1 && set > `"$tempFile`""
+        if ($LASTEXITCODE -ne 0) {
+            return $false
+        }
+        Get-Content $tempFile | ForEach-Object {
+            if ($_ -match '^(?<key>[^=]+?)=(?<val>.*)$') {
+                Set-Item -Path "Env:$($matches['key'])" -Value $matches['val'] -Force
+            }
+        }
+        return $true
+    } finally {
+        Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function Enter-VsDevShellAmd64 {
+    param([string]$VsInstallPath)
+
+    $launchVs = Join-Path $VsInstallPath "Common7\Tools\Launch-VsDevShell.ps1"
+    if (-not (Test-Path $launchVs)) {
+        return $false
+    }
+
+    # GHA / pwsh may define $Arch='' which breaks Launch-VsDevShell metadata on Import-Module.
+    Remove-Variable -Name Arch -Scope Script -ErrorAction SilentlyContinue
+    Remove-Variable -Name Arch -Scope Global -ErrorAction SilentlyContinue
+
+    Import-Module $launchVs -DisableNameChecking
+    Enter-VsDevShell -VsInstallPath $VsInstallPath -SkipAutomaticLocation -Arch amd64 -HostArch amd64
+    return $true
+}
+
 $sdkComponent = Get-VsWindowsSdkComponent
 $hasWindowsKits = Test-WindowsKits10
 
@@ -80,13 +122,14 @@ if ($sdkComponent) {
     }
 }
 
-$launchVs = Join-Path $installPath "Common7\Tools\Launch-VsDevShell.ps1"
-if (Test-Path $launchVs) {
-    Import-Module $launchVs -DisableNameChecking
-    Enter-VsDevShell -VsInstallPath $installPath -SkipAutomaticLocation -Arch amd64 -HostArch amd64
+if ($env:VSCMD_VER) {
+    Write-Host "[deploy] VS dev environment already active ($($env:VSCMD_VER))"
+} elseif (Import-VsDevCmdEnvironment -VsInstallPath $installPath) {
+    Write-Host "[deploy] VsDevCmd amd64 active ($installPath)"
+} elseif (Enter-VsDevShellAmd64 -VsInstallPath $installPath) {
     Write-Host "[deploy] VsDevShell amd64 active ($installPath)"
 } else {
-    Write-Host "[deploy] Launch-VsDevShell.ps1 not found; using PATH-only MSVC tools"
+    Write-Host "[deploy] Could not activate VS dev environment; using PATH-only MSVC tools"
 }
 
 $hasSdkEnv = -not [string]::IsNullOrWhiteSpace($env:WindowsSdkDir)
