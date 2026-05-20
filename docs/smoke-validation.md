@@ -56,9 +56,9 @@ chmod +x scripts/validate_packaging.sh
 ./scripts/validate_packaging.sh
 ```
 
-- Luôn: kiểm tra syntax `build_deb.sh`, có `Product.wxs`
+- Luôn: kiểm tra syntax `build_deb.sh`, có `Package.wxs` + `CentralLogger.wixproj`
 - Chỉ build `.deb` khi tồn tại thư mục `deploy/` (sau `pyside6-deploy`)
-- `.msi`: chạy `scripts/build_msi.ps1` trên Windows với WiX sau khi có `deploy/` đầy đủ (bindpath `DeployDir` cho heat/candle/light)
+- `.msi`: chạy `scripts/build_msi.ps1` trên Windows với WiX Toolset 7 (`dotnet tool install --global wix`) sau khi có `deploy/` đầy đủ
 
 ## Kết quả lần chạy gần nhất
 

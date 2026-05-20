@@ -12,6 +12,8 @@ env/
 *.egg
 dist/
 build/
+packaging/windows/bin/
+packaging/windows/obj/
 *.log
 
 # Generated Qt resources

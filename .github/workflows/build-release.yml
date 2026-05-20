@@ -183,38 +183,15 @@ jobs:
           "@
           python -c $py
 
-      # WiX 3.x may already be on the runner image — skip choco when heat.exe is present.
-      - name: Install WiX Toolset v3 (heat, candle, light)
-        shell: pwsh
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Install WiX Toolset 7
         run: |
-          $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')
-          $heatPath = $null
-          $heatCmd = Get-Command heat.exe -ErrorAction SilentlyContinue
-          if ($heatCmd) {
-            $heatPath = $heatCmd.Source
-          } else {
-            $found = Get-ChildItem -Path "${env:ProgramFiles(x86)}\WiX Toolset v3*" -Filter heat.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-            if ($found) { $heatPath = $found.FullName }
-          }
-          if (-not $heatPath) {
-            choco install wixtoolset -y --no-progress
-            $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')
-            $heatCmd = Get-Command heat.exe -ErrorAction SilentlyContinue
-            if ($heatCmd) {
-              $heatPath = $heatCmd.Source
-            } else {
-              $found = Get-ChildItem -Path "${env:ProgramFiles(x86)}\WiX Toolset v3*" -Filter heat.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-              if ($found) { $heatPath = $found.FullName }
-            }
-          } else {
-            Write-Host "WiX already available: $heatPath"
-          }
-          if (-not $heatPath) {
-            throw "heat.exe not found. Install WiX Toolset v3 or fix Chocolatey."
-          }
-          $wixBin = Split-Path $heatPath -Parent
-          Write-Host "WiX bin: $wixBin"
-          echo "$wixBin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          dotnet tool install --global wix
+          wix --version
 
       - name: Build deploy/ (pyside6-deploy / Nuitka)
         shell: pwsh

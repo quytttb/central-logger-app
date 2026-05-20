@@ -1,0 +1,78 @@
+# MSI Packaging: rebuild .msi from cached deploy/ (fast path when only packaging changes).
+name: MSI Packaging
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "packaging/**"
+      - "scripts/build_msi.ps1"
+      - ".github/workflows/msi-packaging.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: msi-packaging-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-msi-quick:
+    if: "!contains(github.event.head_commit.message, 'chore(release):')"
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Read version from pyproject.toml
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(grep -m1 '^version' pyproject.toml | sed -E 's/^version[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/')
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: Restore deploy/ cache
+        id: deploy-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: deploy
+          key: deploy-windows-${{ hashFiles('uv.lock', 'pyproject.toml', 'pysidedeploy.spec') }}
+
+      - name: Require cached deploy/
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ steps.deploy-cache.outputs.cache-hit }}" != "true" ]]; then
+            echo "::error::No deploy/ cache. Run Dev Build (build-msi) once to warm cache, or workflow_dispatch after a successful deploy build." >&2
+            exit 1
+          fi
+          test -f deploy/CentralLogger.exe
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Install WiX Toolset 7
+        run: |
+          dotnet tool install --global wix
+          wix --version
+
+      - name: Build MSI installer
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}\scripts\build_msi.ps1" -DeployDir deploy
+
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: central-logger-msi-packaging-${{ github.sha }}
+          path: dist/CentralLogger-${{ steps.meta.outputs.version }}-win64.msi
+          if-no-files-found: error
+          retention-days: 7

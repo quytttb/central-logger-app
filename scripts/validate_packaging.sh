@@ -7,10 +7,11 @@ cd "${ROOT}"
 
 echo "== Syntax check =="
 bash -n scripts/build_deb.sh
-test -f packaging/windows/Product.wxs
+test -f packaging/windows/Package.wxs
+test -f packaging/windows/CentralLogger.wixproj
 
 if [[ -f scripts/build_msi.ps1 ]]; then
-  echo "build_msi.ps1 present (run on Windows with WiX after deploy)"
+  echo "build_msi.ps1 present (run on Windows with WiX Toolset 7 after deploy)"
 fi
 
 DEPLOY="${ROOT}/deploy"

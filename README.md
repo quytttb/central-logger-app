@@ -43,16 +43,17 @@ central-logger-app/
 │   ├── build_deb.sh          # .deb từ thư mục deploy
 │   ├── build_deploy_linux.sh    # deploy/ Nuitka (Linux; CI + build.sh)
 │   ├── build_deploy_windows.ps1 # deploy/ Nuitka (Windows)
-│   ├── build_msi.ps1            # .msi (Windows, cần WiX)
+│   ├── build_msi.ps1            # .msi (Windows, WiX Toolset 7)
 │   ├── bump_version.py          # SemVer → pyproject.toml
 │   ├── stage_zbar_windows.ps1   # auto-download ZBar DLLs (Windows)
 │   └── fetch_zbar_windows.py    # same download (Linux/WSL)
-├── packaging/windows/        # WiX Product.wxs
+├── packaging/windows/        # WiX 7 Package.wxs + CentralLogger.wixproj
 ├── docs/perf-baseline.md
 ├── tests/
 └── .github/workflows/
     ├── ci.yml
     ├── dev-build.yml         # push main → .deb + .msi artifacts (dev)
+    ├── msi-packaging.yml     # push packaging/ → .msi từ cache deploy/ (nhanh)
     └── build-release.yml     # tag v*.*.* → build .deb + .msi → GitHub Release
 ```
 
@@ -253,10 +254,10 @@ Compress-Archive -Path deploy\* -DestinationPath "dist\CentralLogger-$ver-win64.
 
 User giải nén zip → chạy `CentralLogger.exe` trong thư mục đã giải nén. Có thể copy folder `deploy\` sang máy khác (cùng Windows x64).
 
-### Đóng gói Windows — Cách 2: Installer `.msi` (cần WiX)
+### Đóng gói Windows — Cách 2: Installer `.msi` (WiX Toolset 7)
 
 1. Build portable như **Triển khai Windows** (phải có `deploy\CentralLogger.exe`).
-2. Cài [WiX Toolset](https://wixtoolset.org/) (`heat.exe`, `candle.exe`, `light.exe` trên PATH).
+2. Cài [.NET SDK 8+](https://dotnet.microsoft.com/download) và WiX 7: `dotnet tool install --global wix` (chấp nhận EULA: `wix eula accept wix7` hoặc `AcceptEula` trong wixproj).
 3. Chạy menu (chọn PATCH / MINOR / MAJOR):
 
 ```powershell
@@ -269,7 +270,7 @@ Hoặc một lệnh: `.\scripts\build.ps1 msi patch -DeployDir deploy`
 
 Đã bump tay, chỉ đóng MSI: `.\scripts\build_msi.ps1 -DeployDir deploy` (tùy chọn `-Version`).
 
-**MSI build lỗi thường gặp:** `LGHT0103` / file not found under `SourceDir\...` — `deploy\` phải đầy đủ (chạy `build_deploy_windows.ps1` trước); script đã bind `$(var.DeployDir)` qua `heat -var`, `candle -dDeployDir`, `light -b deploy`.
+**MSI build:** `packaging/windows/Package.wxs` harvest `deploy\` qua WiX 7 `<Files>` + `BindPath`. `deploy\` phải đầy đủ (chạy `build_deploy_windows.ps1` trước). CI: workflow **MSI Packaging** rebuild MSI nhanh từ cache `deploy/` sau Dev Build thành công.
 
 **Cài thử:** `msiexec /i "dist\CentralLogger-0.1.0-win64.msi"`
 

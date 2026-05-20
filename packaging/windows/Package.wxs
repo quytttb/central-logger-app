@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Central Logger MSI (WiX Toolset 7).
+  Build: scripts/build_msi.ps1 -DeployDir <nuitka deploy folder>
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Central Logger" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="Central Logger" />
+    </StandardDirectory>
+  </Fragment>
+
+  <Package
+    Name="Central Logger"
+    Manufacturer="Central Logger Team"
+    Version="$(var.ProductVersion)"
+    UpgradeCode="A1B2C3D4-E5F6-7890-ABCD-EF1234567890"
+    Scope="perMachine">
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Central Logger is already installed." />
+
+    <Feature Id="MainFeature" Title="Central Logger" Level="1">
+      <ComponentGroupRef Id="DeployFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <ComponentGroup Id="DeployFiles" Directory="INSTALLFOLDER">
+      <Files Include="!(bindpath.DeployDir)\**">
+        <Exclude Path="!(bindpath.DeployDir)\**\_nuitka_package.marker" />
+      </Files>
+    </ComponentGroup>
+
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="StartMenuShortcut" Guid="B2C3D4E5-F6A7-8901-BCDE-F12345678901">
+        <Shortcut
+          Id="StartMenuShortcut"
+          Name="Central Logger"
+          Target="[INSTALLFOLDER]CentralLogger.exe"
+          WorkingDirectory="INSTALLFOLDER" />
+        <RemoveFolder Directory="ApplicationProgramsFolder" On="uninstall" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+</Wix>

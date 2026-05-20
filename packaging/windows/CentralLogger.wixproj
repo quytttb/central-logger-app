@@ -1,0 +1,15 @@
+<Project Sdk="WixToolset.Sdk/7.0.0">
+  <PropertyGroup>
+    <AcceptEula>wix7</AcceptEula>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <DeployDir Condition="'$(DeployDir)' == ''">$(MSBuildProjectDirectory)\..\..\deploy</DeployDir>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">0.1.0.0</ProductVersion>
+    <MsiBaseVersion Condition="'$(MsiBaseVersion)' == ''">$(ProductVersion)</MsiBaseVersion>
+    <OutputName>CentralLogger-$(MsiBaseVersion)-win64</OutputName>
+    <OutputPath>$(MSBuildProjectDirectory)\..\..\dist\</OutputPath>
+    <DefineConstants>ProductVersion=$(ProductVersion)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <BindPath Include="$(DeployDir)" Name="DeployDir" />
+  </ItemGroup>
+</Project>
