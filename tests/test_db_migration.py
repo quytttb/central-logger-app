@@ -6,13 +6,13 @@ from sqlalchemy import inspect, text
 from sqlmodel import create_engine
 
 from central_logger.controllers import logger_ops
+from central_logger.db import session as db_session
 from central_logger.db.session import (
     _drop_legacy_poll_interval_ms,
     _ensure_logger_info_columns,
     _migrate_poll_interval_seconds,
     init_db,
 )
-from central_logger.db import session as db_session
 
 
 def test_add_missing_columns_on_legacy_table(tmp_path):
