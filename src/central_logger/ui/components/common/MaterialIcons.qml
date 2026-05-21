@@ -14,7 +14,7 @@ QtObject {
     readonly property string windowMinimize: "\uE931"   // minimize
     readonly property string windowClose: "\uE5CD"      // close
     readonly property string viewDashboard: "\uE871"    // dashboard
-    readonly property string server: "\uE1DB"           // storage (loggers / devices)
+    readonly property string server: "\uF56E"           // loggers (sidebar Edge Loggers)
     readonly property string cog: "\uE8B8"              // settings
     readonly property string wifi: "\uE63E"             // wifi
     readonly property string alertOutline: "\uE002"     // warning

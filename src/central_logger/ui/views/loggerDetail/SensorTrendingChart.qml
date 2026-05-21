@@ -19,10 +19,10 @@ ChartPanel {
     property real seriesMin: 0
     property real seriesMax: 1
 
-    readonly property var orderedSensorIds: SensorPalette.orderedSensorIds(sensorList)
+    readonly property var orderedAnalogIds: SensorPalette.orderedAnalogSensorIds(sensorList)
 
     function seriesColor(sensorId) {
-        return SensorPalette.colorForSensorId(sensorId, orderedSensorIds)
+        return SensorPalette.colorForSensorId(sensorId, orderedAnalogIds)
     }
 
     function refresh() {
@@ -74,7 +74,7 @@ ChartPanel {
     }
 
     title: "Trending History"
-    subtitle: "Per poll · last ~24 readings"
+    subtitle: "Analog sensors · per poll · last ~24 readings"
 
     Item {
         id: chartArea

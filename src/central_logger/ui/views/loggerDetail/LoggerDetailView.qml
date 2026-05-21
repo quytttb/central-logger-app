@@ -83,8 +83,6 @@ Item {
     function _openEditDialog() {
         _rebuildDetail()
         _hydrateDetailFromDb()
-        if (dashboardController && loggerId >= 0)
-            dashboardController.fetchConfig(loggerId)
         editDialog.loadFromDetail(view.detail)
         editDialog.open()
     }
@@ -102,7 +100,7 @@ Item {
             return 2000
         }
         repeat: true
-        running: view.loggerId >= 0 && view.dashboardController !== null
+        running: view.loggerId >= 0 && view.detail.online && view.dashboardController !== null
         onTriggered: {
             if (view.dashboardController && view.loggerId >= 0)
                 view.dashboardController.fetchReadingsIfStale(view.loggerId)
@@ -115,7 +113,8 @@ Item {
         readingsPollTimer.restart()
         if (dashboardController && loggerId >= 0) {
             dashboardController.fetchConfig(loggerId)
-            dashboardController.fetchReadings(loggerId)
+            if (view.detail.online)
+                dashboardController.fetchReadings(loggerId)
         }
     }
 
@@ -143,22 +142,16 @@ Item {
                     "Could not load sensor catalog (REST)"
                 )
                 view.detail = Object.assign({}, view.detail, { catalogError: failMsg })
-                if (editDialog.opened) {
-                    editDialog.configLoaded = false
-                    editDialog.setProbeError(failMsg)
-                }
                 return
             }
             var merged = DetailLogic.mergeConfigFetched(view.detail, payloadJson)
             view.detail = merged.detail
-            if (editDialog.opened) {
+            if (editDialog.opened)
                 editDialog.loadFromDetail(view.detail)
-                editDialog.configLoaded = true
-                editDialog.setProbeSuccess()
-            }
             if (view.dashboardController) {
                 view.dashboardController.refreshSensorList(view.loggerId)
-                view.dashboardController.fetchReadings(view.loggerId)
+                if (view.detail.online)
+                    view.dashboardController.fetchReadings(view.loggerId)
             }
         }
         function onReportDownloaded(id, ok, message) {
@@ -289,10 +282,11 @@ Item {
         }
     }
 
-    EditConfigDialog {
+    LoggerFormDialog {
         id: editDialog
+        mode: "edit"
         isDark: view.isDark
-        config: view.detail
+        detail: view.detail
         dashboardController: view.dashboardController
         onSaved: function(patch) {
             if (!view.dashboardController || view.loggerId < 0) return

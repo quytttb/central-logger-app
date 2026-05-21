@@ -97,6 +97,41 @@ def test_sensor_trending_poll_history(qtbot, fresh_db):
     assert series[0]["values"] == [10.0, 20.0, 30.0]
 
 
+def test_poll_trending_analog_only():
+    catalog = [
+        {"sensor_id": 1, "name": "Temp", "sensor_type": "AI", "unit": "C", "active": True},
+        {"sensor_id": 2, "name": "Door", "sensor_type": "DI", "unit": "", "active": True},
+    ]
+    points = [
+        {"label": "10:00:00", "values": {1: 20.0, 2: 1.0}},
+        {"label": "10:00:05", "values": {1: 21.0, 2: 0.0}},
+    ]
+    _labels, series = chart_queries.build_poll_trending_series(
+        1, points, sensor_catalog=catalog
+    )
+    assert len(series) == 1
+    assert series[0]["sensorId"] == 1
+
+
+def test_poll_trending_no_top_four_cap():
+    catalog = [
+        {
+            "sensor_id": i,
+            "name": f"S{i}",
+            "sensor_type": "AI",
+            "unit": "",
+            "active": True,
+        }
+        for i in range(1, 8)
+    ]
+    points = [{"label": "t", "values": {i: float(i) for i in range(1, 8)}}]
+    _labels, series = chart_queries.build_poll_trending_series(
+        1, points, sensor_catalog=catalog
+    )
+    assert len(series) == 7
+    assert [s["sensorId"] for s in series] == list(range(1, 8))
+
+
 def test_sensor_trending_poll_seeds_from_db(qtbot, fresh_db):
     from datetime import datetime, timezone
 

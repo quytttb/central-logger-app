@@ -130,8 +130,10 @@ class ModbusBridge:
             prev_online = self._is_online(config.id)
             self._model.update_status(
                 config.id,
-                online=outcome.tcp_connected,
+                online=False,
                 polling=False,
+                rtu_connected=False,
+                any_alarm=False,
                 last_error=outcome.error,
             )
             if prev_online is True:

@@ -11,7 +11,7 @@ Bạn đang ở khu vực View (UI Layer) của dự án. Giao diện được x
      - `common/`: Badge, SensorStatusBadge, LabeledField, DialogButton, PageHeader, TableHeaderCell, ListRowDelegate, HoverHighlight, FormSectionLabel
      - `cards/`: StatCard (extends PanelCard), PanelCard
      - `navigation/`: AppSidebar, AppTopBar
-     - `dialogs/`: BaseDialog, LoggerFormDialog, AddLoggerDialog, ConfirmDialog, EditConfigDialog
+     - `dialogs/`: BaseDialog, LoggerFormDialog, LoggerFormBody, LoggerFormFooter, ConfirmDialog
      - `charts/`: BaseChart, ChartPanel, ChartTooltipOverlay
      - `utils/`: FrameResizeHandles
    - `logic/`: `LoggerFormLogic.js`, `LoggerDetailLogic.js` — orchestration tách khỏi layout QML

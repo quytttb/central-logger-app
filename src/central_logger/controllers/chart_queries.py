@@ -13,7 +13,7 @@ from sqlmodel import Session, select
 
 from central_logger.db.models import DEFAULT_SYSTEM_TIMEZONE, AppSettings, SensorReading
 from central_logger.db.session import get_session
-from central_logger.services.sensor_catalog import display_name_for_sensor
+from central_logger.services.sensor_catalog import analog_sensor_ids, display_name_for_sensor
 
 log = logging.getLogger(__name__)
 
@@ -267,15 +267,20 @@ def build_poll_trending_series(
     *,
     sensor_catalog: list[dict[str, Any]] | None = None,
 ) -> tuple[list[str], list[dict[str, Any]]]:
-    sensor_total: dict[int, int] = {}
+    catalog = sensor_catalog or []
+    analog_ids = analog_sensor_ids(catalog) if catalog else None
+
+    sensor_ids: set[int] = set()
     for pt in points:
         for sid in pt.get("values") or {}:
-            sensor_total[int(sid)] = sensor_total.get(int(sid), 0) + 1
-    top_sensors = sorted(sensor_total.items(), key=lambda kv: kv[1], reverse=True)[:4]
+            sid_int = int(sid)
+            if analog_ids is not None and sid_int not in analog_ids:
+                continue
+            sensor_ids.add(sid_int)
+
     labels = [str(pt.get("label", "")) for pt in points]
-    catalog = sensor_catalog or []
     series: list[dict[str, Any]] = []
-    for sid, _count in top_sensors:
+    for sid in sorted(sensor_ids):
         values = [float((pt.get("values") or {}).get(sid, 0.0)) for pt in points]
         series.append(
             {

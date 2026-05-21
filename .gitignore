@@ -51,3 +51,6 @@ resources/native/windows/*.dll
 *.build/
 *.dist/
 *.onefile-build/
+
+# Staged / copied UI bundle (generated from src)
+deploy/

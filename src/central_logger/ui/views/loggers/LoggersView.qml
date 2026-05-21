@@ -150,8 +150,9 @@ Item {
         }
     }
 
-    AddLoggerDialog {
+    LoggerFormDialog {
         id: addLoggerDialog
+        mode: "add"
         isDark: view.isDark
         dashboardController: view.dashboardController
         onAddRequested: function(d) {

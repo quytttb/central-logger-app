@@ -22,7 +22,12 @@ from central_logger.app_paths import resolve_logo_path, resolve_resources_root
 from central_logger.controllers import DashboardController, SettingsController  # noqa: F401
 from central_logger.db import init_db
 from central_logger.system_tray import SystemTrayBridge
-from central_logger.viewmodels import AppState, LoggerListModel, RecentEventsModel  # noqa: F401
+from central_logger.viewmodels import (  # noqa: F401
+    AppState,
+    LoggerListModel,
+    RecentEventsModel,
+    SensorMonitoringTableModel,
+)
 
 
 def _resolve_qml_root() -> Path:

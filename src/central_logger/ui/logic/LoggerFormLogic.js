@@ -46,7 +46,7 @@ function connectionSnapshotFromFields(fields) {
     }
 }
 
-function buildEditPatch(mode, detail, online, fields) {
+function buildEditPatch(mode, detail, configLoaded, fields) {
     var d = detail
     var cf = d.configForm || {}
     var raw = d.rawConfig || {}
@@ -77,7 +77,7 @@ function buildEditPatch(mode, detail, online, fields) {
     }
 
     var configPatch = {}
-    if (mode === "edit" && !!online) {
+    if (mode === "edit" && !!configLoaded) {
         var edgeUnitId = parseInt(fields.unitIdDevice)
         var configCurrent = {
             station_code: (fields.stationCode || "").trim(),
@@ -133,31 +133,4 @@ function parseProbeSuccess(jsonStr, snap) {
         currentRevision: p.revision !== null && p.revision !== undefined ? p.revision : -1
     })
     return { ok: true, detail: detail, revision: detail.currentRevision }
-}
-
-function parseConfigFetched(id, payloadJson, snap) {
-    var p = JSON.parse(payloadJson)
-    var cfg = p.config || {}
-    var apiTok = p.api_token !== undefined ? p.api_token : (snap.cloudForm ? snap.cloudForm.apiToken : "")
-    var apiP = p.api_port !== undefined ? p.api_port : snap.apiPort
-    var detail = Object.assign({}, snap, {
-        loggerId: id,
-        apiPort: apiP,
-        apiBaseUrl: p.api_base_url !== undefined ? p.api_base_url : snap.apiBaseUrl,
-        cloudForm: {
-            apiToken: apiTok,
-            apiPort: apiP
-        },
-        configForm: {
-            station_code: cfg.station_code || "",
-            station_name: cfg.station_name || "",
-            poll_interval: cfg.poll_interval || 0,
-            modbus_tcp_bind: cfg.modbus_tcp_bind || "",
-            modbus_tcp_enabled: !!cfg.modbus_tcp_enabled,
-            modbus_tcp_unit_id: cfg.modbus_tcp_unit_id !== undefined ? cfg.modbus_tcp_unit_id : 1
-        },
-        rawConfig: cfg,
-        currentRevision: p.revision !== null && p.revision !== undefined ? p.revision : -1
-    })
-    return detail
 }

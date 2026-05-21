@@ -5,6 +5,20 @@ from __future__ import annotations
 from typing import Any
 
 
+def is_digital_sensor_type(sensor_type: str) -> bool:
+    st = (sensor_type or "").upper()
+    return st in ("DI", "DO")
+
+
+def analog_sensor_ids(catalog: list[dict[str, Any]] | None) -> set[int]:
+    """Sensor IDs that are not DI/DO — used for trending chart series."""
+    ids: set[int] = set()
+    for entry in catalog or []:
+        if not is_digital_sensor_type(entry.get("sensor_type", "")):
+            ids.add(int(entry["sensor_id"]))
+    return ids
+
+
 def is_top_level_sensor(raw: dict[str, Any]) -> bool:
     """True for standalone sensors (parent_id unset); False for DI/DO attached to analog."""
     if "parent_id" not in raw:

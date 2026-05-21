@@ -8,71 +8,186 @@ import "../../logic/LoggerFormLogic.js" as FormLogic
 import components
 
 /*
- * Unified Add / Edit logger form — 2-column desktop layout.
- * mode "add"  : Left column (Central) editable; Right column (Device) shows hint.
- * mode "edit" : Left editable always; Right editable only when logger online.
+ * Unified Add / Edit logger form — responsive GridLayout body.
+ * mode "add"  : Central editable; Device after Connect & Load.
+ * mode "edit" : Central always editable; Device after successful probe.
  */
-BaseDialog {
+Dialog {
     id: dialog
 
-    preferredWidth: 940
+    property bool isDark: true
     property string mode: "add"  // "add" | "edit"
     property var detail: ({})
     property var dashboardController: null
     property bool configLoaded: false
     property string probeStatus: ""
     property string probeStatusKind: "idle"  // idle | loading | success | error
-    property int probedRevision: -1
 
     readonly property color probeStatusColor: Colors.probeStatusText(dialog.isDark, probeStatusKind)
+    readonly property bool deviceEditable: configLoaded
+    readonly property bool qrScanEnabled: !dashboardController || dashboardController.qrScanAvailable()
 
     signal addRequested(var formData)
     signal saved(var patch)
 
     title: mode === "add" ? "Add Edge Logger" : "Edit Logger"
-    footerPreferredHeight: probeStatus.length > 0 ? 80 : 64
+    modal: true
+    focus: true
+    padding: 0
+    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
-    // Device fields: sau Connect & Load (Add) hoặc Edit khi online.
-    readonly property bool deviceEditable: configLoaded
-        || (mode === "edit" && !!detail.online)
-    readonly property bool qrScanEnabled: !dashboardController || dashboardController.qrScanAvailable()
+    parent: Overlay.overlay
+    anchors.centerIn: parent
+    width: Math.min(940, parent ? parent.width - 32 : 940)
+    height: Math.min(
+        headerItem.height + footerItem.implicitHeight + bodyFlick.contentHeight + 2,
+        parent ? Math.floor(parent.height * 0.9) : 720
+    )
 
-    readonly property alias nameField: centralCol.nameField
-    readonly property alias noteField: centralCol.noteField
-    readonly property alias hostField: centralCol.hostField
-    readonly property alias portField: centralCol.portField
-    readonly property alias unitField: centralCol.unitField
-    readonly property alias timeoutField: centralCol.timeoutField
-    readonly property alias apiPortField: centralCol.apiPortField
-    readonly property alias tokenField: centralCol.tokenField
-    readonly property alias apiBaseUrlField: centralCol.apiBaseUrlField
-    readonly property alias stationCodeField: deviceCol.stationCodeField
-    readonly property alias stationNameField: deviceCol.stationNameField
-    readonly property alias bindField: deviceCol.bindField
-    readonly property alias unitIdDeviceField: deviceCol.unitIdDeviceField
-    readonly property alias pollDeviceField: deviceCol.pollDeviceField
-    readonly property alias modbusTcpEnabledCheck: deviceCol.modbusTcpEnabledCheck
+    Overlay.modal: Rectangle { color: Qt.rgba(0, 0, 0, 0.6) }
 
-    function importQrFromFile() {
-        if (!dialog.dashboardController) {
-            if (typeof window !== "undefined" && window && window.notify)
-                window.notify("Dashboard controller not available", "error")
-            return
+    enter: Transition {
+        ParallelAnimation {
+            NumberAnimation {
+                property: "opacity"
+                from: 0.0
+                to: 1.0
+                duration: UiMotion.durationDialog
+                easing.type: UiMotion.easingOut
+            }
+            NumberAnimation {
+                target: dialogCard
+                property: "scale"
+                from: 0.96
+                to: 1.0
+                duration: UiMotion.durationDialog
+                easing.type: UiMotion.easingOut
+            }
         }
-        var raw = dialog.dashboardController.importProvisionFromQrImageWithDialog()
-        try {
-            var res = JSON.parse(raw || "{}")
-            if (res.cancelled)
-                return
-            if (res.ok && res.fields)
-                dialog.applyProvisionFields(res.fields)
-            else if (typeof window !== "undefined" && window && window.notify)
-                window.notify(res.error || "Invalid provisioning QR", "error")
-            else
-                console.warn("QR import:", res.error)
-        } catch (e) {
-            if (typeof window !== "undefined" && window && window.notify)
-                window.notify("Invalid QR response", "error")
+    }
+
+    exit: Transition {
+        ParallelAnimation {
+            NumberAnimation {
+                property: "opacity"
+                from: 1.0
+                to: 0.0
+                duration: UiMotion.durationFast
+                easing.type: UiMotion.easingIn
+            }
+            NumberAnimation {
+                target: dialogCard
+                property: "scale"
+                from: 1.0
+                to: 0.96
+                duration: UiMotion.durationFast
+                easing.type: UiMotion.easingIn
+            }
+        }
+    }
+
+    background: Rectangle {
+        id: dialogCard
+        radius: 12
+        color: Colors.surface(dialog.isDark)
+        border.width: 1
+        border.color: Colors.border(dialog.isDark)
+        transformOrigin: Item.Center
+    }
+
+    header: Item {
+        id: headerItem
+        implicitHeight: 56
+        implicitWidth: dialog.width
+
+        Rectangle {
+            anchors.bottom: parent.bottom
+            width: parent.width
+            height: 1
+            color: Colors.divider(dialog.isDark)
+        }
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 24
+            anchors.rightMargin: 24
+            UiLabel {
+                textType: UiLabel.Body2
+                text: dialog.title
+                Layout.fillWidth: true
+                color: Colors.textPrimary(dialog.isDark)
+                font.family: "Roboto"
+                font.pixelSize: 20
+                font.weight: Font.DemiBold
+            }
+            Rectangle {
+                width: 32
+                height: 32
+                radius: 6
+                color: "transparent"
+                HoverHighlight {
+                    anchors.fill: parent
+                    cornerRadius: 6
+                    hovered: closeMouse.containsMouse
+                    isDark: dialog.isDark
+                }
+                UiIcon {
+                    anchors.centerIn: parent
+                    name: "close"
+                    size: 20
+                    iconColor: Colors.textSecondary(dialog.isDark)
+                }
+                MouseArea {
+                    id: closeMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: dialog.close()
+                }
+            }
+        }
+    }
+
+    contentItem: Flickable {
+        id: bodyFlick
+        implicitWidth: dialog.width
+        implicitHeight: Math.min(
+            formBody.implicitHeight + 40,
+            dialog.parent ? Math.floor(dialog.parent.height * 0.9) - headerItem.height - footerItem.implicitHeight - 8 : 600
+        )
+        contentWidth: width
+        contentHeight: formBody.implicitHeight + 40
+        clip: true
+        boundsBehavior: Flickable.StopAtBounds
+
+        LoggerFormBody {
+            id: formBody
+            width: bodyFlick.width - 48
+            x: 24
+            y: 20
+            form: dialog
+        }
+    }
+
+    footer: Item {
+        id: footerItem
+        implicitWidth: dialog.width
+        implicitHeight: footerPad.implicitHeight + 24
+
+        Rectangle {
+            anchors.top: parent.top
+            width: parent.width
+            height: 1
+            color: Colors.divider(dialog.isDark)
+        }
+        LoggerFormFooter {
+            id: footerPad
+            anchors.fill: parent
+            anchors.leftMargin: 24
+            anchors.rightMargin: 24
+            anchors.topMargin: 12
+            anchors.bottomMargin: 12
+            form: dialog
+            body: formBody
         }
     }
 
@@ -80,24 +195,8 @@ BaseDialog {
         return FormLogic.humanizeProbeError(raw)
     }
 
-    function _fieldSnapshot() {
-        return {
-            name: nameField.value,
-            note: noteField.value,
-            host: hostField.value,
-            port: portField.value,
-            unit: unitField.value,
-            timeout: timeoutField.value,
-            apiPort: apiPortField.value,
-            token: tokenField.value,
-            apiBaseUrl: apiBaseUrlField.value,
-            stationCode: stationCodeField.value,
-            stationName: stationNameField.value,
-            bind: bindField.value,
-            pollDevice: pollDeviceField.value,
-            unitIdDevice: unitIdDeviceField.value,
-            modbusTcpEnabled: modbusTcpEnabledCheck.checked
-        }
+    function connectionSnapshotFromFields() {
+        return FormLogic.connectionSnapshotFromFields(formBody.fieldSnapshot())
     }
 
     function setProbeLoading() {
@@ -115,52 +214,13 @@ BaseDialog {
         probeStatus = humanizeProbeError(raw)
     }
 
-    function connectionSnapshotFromFields() {
-        return FormLogic.connectionSnapshotFromFields(_fieldSnapshot())
-    }
-
-    function clearAllFieldFocus() {
-        nameField.clearFocus()
-        noteField.clearFocus()
-        hostField.clearFocus()
-        portField.clearFocus()
-        unitField.clearFocus()
-        timeoutField.clearFocus()
-        apiPortField.clearFocus()
-        tokenField.clearFocus()
-        apiBaseUrlField.clearFocus()
-        stationCodeField.clearFocus()
-        stationNameField.clearFocus()
-        bindField.clearFocus()
-        pollDeviceField.clearFocus()
-        unitIdDeviceField.clearFocus()
-    }
-
     function loadFromDetail(d) {
         var src = d || {}
         if (dialog.mode === "add")
             detail = src
-        nameField.setValue(src.loggerName || "")
-        noteField.setValue(src.note || "")
-        hostField.setValue(src.host || "")
-        portField.setValue(src.port !== undefined ? String(src.port) : "5020")
-        unitField.setValue(src.unitId !== undefined ? String(src.unitId) : "1")
-        timeoutField.setValue(src.timeoutS !== undefined ? String(src.timeoutS) : "2.0")
-        apiPortField.setValue(src.apiPort !== undefined ? String(src.apiPort) : "8080")
-        tokenField.setValue(src.cloudForm ? (src.cloudForm.apiToken || "") : "")
-        apiBaseUrlField.setValue(src.apiBaseUrl || "")
-
+        formBody.loadFromDetail(src)
         var cf = src.configForm || {}
         var raw = src.rawConfig || {}
-        stationCodeField.setValue(cf.station_code || raw.station_code || "")
-        stationNameField.setValue(cf.station_name || raw.station_name || "")
-        bindField.setValue(raw.modbus_tcp_bind || cf.modbus_tcp_bind || "")
-        pollDeviceField.setValue(cf.poll_interval !== undefined ? String(cf.poll_interval) : "")
-        modbusTcpEnabledCheck.checked = cf.modbus_tcp_enabled !== undefined
-            ? !!cf.modbus_tcp_enabled
-            : !!raw.modbus_tcp_enabled
-        var edgeUnit = cf.modbus_tcp_unit_id !== undefined ? cf.modbus_tcp_unit_id : raw.modbus_tcp_unit_id
-        unitIdDeviceField.setValue(edgeUnit !== undefined ? String(edgeUnit) : "")
         configLoaded = !!(cf.station_code || raw.station_code || cf.poll_interval)
     }
 
@@ -173,8 +233,9 @@ BaseDialog {
                 setProbeError(result.error)
                 return
             }
-            detail = result.detail
-            probedRevision = result.revision
+            detail = Object.assign({}, result.detail, {
+                loggerId: dialog.detail.loggerId !== undefined ? dialog.detail.loggerId : result.detail.loggerId
+            })
             loadFromDetail(detail)
             configLoaded = true
             setProbeSuccess()
@@ -192,227 +253,95 @@ BaseDialog {
         }
         setProbeLoading()
         configLoaded = false
-        var lid = detail.loggerId !== undefined ? detail.loggerId : -1
-        if (mode === "edit" && lid >= 0) {
-            dashboardController.fetchConfig(lid)
-            return
-        }
-        var h = (hostField.value || "").trim()
-        var tok = tokenField.value || ""
-        var ap = parseInt(apiPortField.value)
+        var snap = formBody.fieldSnapshot()
+        var h = (snap.host || "").trim()
+        var ap = parseInt(snap.apiPort)
         dashboardController.probeEdgeConfig(
             h,
             isNaN(ap) ? 8080 : ap,
-            tok,
-            (apiBaseUrlField.value || "").trim()
+            snap.token || "",
+            (snap.apiBaseUrl || "").trim()
         )
     }
 
-    function applyProvisionFields(fields) {
-        if (!fields) return
-        if (fields.api_token !== undefined) tokenField.setValue(fields.api_token)
-        if (fields.host !== undefined) hostField.setValue(fields.host)
-        if (fields.api_port !== undefined) apiPortField.setValue(String(fields.api_port))
-        if (fields.modbus_port !== undefined) portField.setValue(String(fields.modbus_port))
-        if (fields.modbus_unit_id !== undefined) unitField.setValue(String(fields.modbus_unit_id))
-        if (fields.station_code !== undefined) stationCodeField.setValue(fields.station_code)
-        if (fields.station_name !== undefined) {
-            stationNameField.setValue(fields.station_name)
-            if (dialog.mode === "add" && !(nameField.value || "").trim())
-                nameField.setValue(fields.station_name)
+    function importQrFromFile() {
+        if (!dialog.dashboardController) {
+            if (typeof window !== "undefined" && window && window.notify)
+                window.notify("Dashboard controller not available", "error")
+            return
+        }
+        var raw = dialog.dashboardController.importProvisionFromQrImageWithDialog()
+        try {
+            var res = JSON.parse(raw || "{}")
+            if (res.cancelled)
+                return
+            if (res.ok && res.fields)
+                applyProvisionFields(res.fields)
+            else if (typeof window !== "undefined" && window && window.notify)
+                window.notify(res.error || "Invalid provisioning QR", "error")
+            else
+                console.warn("QR import:", res.error)
+        } catch (e) {
+            if (typeof window !== "undefined" && window && window.notify)
+                window.notify("Invalid QR response", "error")
         }
     }
 
-    function _buildEditPatch() {
-        return FormLogic.buildEditPatch(dialog.mode, detail, detail.online, _fieldSnapshot())
+    function applyProvisionFields(fields) {
+        formBody.applyProvisionFields(fields)
+    }
+
+    function buildEditPatch() {
+        return FormLogic.buildEditPatch(dialog.mode, detail, configLoaded, formBody.fieldSnapshot())
+    }
+
+    onClosed: {
+        probeStatus = ""
+        probeStatusKind = "idle"
     }
 
     onOpened: {
         probeStatus = ""
         probeStatusKind = "idle"
-        probedRevision = -1
         if (mode === "edit") {
             loadFromDetail(detail)
         } else {
             configLoaded = false
-            nameField.setValue("")
-            noteField.setValue("")
-            hostField.setValue("")
-            portField.setValue("5020")
-            unitField.setValue("1")
-            timeoutField.setValue("2.0")
-            apiPortField.setValue("8080")
-            tokenField.setValue("")
-            apiBaseUrlField.setValue("")
+            loadFromDetail({
+                loggerName: "",
+                note: "",
+                host: "",
+                port: 5020,
+                unitId: 1,
+                timeoutS: 2.0,
+                apiPort: 8080,
+                apiBaseUrl: "",
+                cloudForm: { apiToken: "", apiPort: 8080 }
+            })
         }
-        Qt.callLater(dialog.clearAllFieldFocus)
+        Qt.callLater(formBody.clearAllFieldFocus)
     }
 
-    // ── Status strip (Edit only) ──────────────────────────────────────────────
-    ColumnLayout {
-        Layout.fillWidth: true
-        Layout.leftMargin: 0
-        Layout.rightMargin: 0
-        spacing: 0
-
-        Rectangle {
-            visible: dialog.mode === "edit"
-            Layout.fillWidth: true
-            Layout.preferredHeight: visible ? 40 : 0
-            color: detail.online
-                ? (dialog.isDark ? "#052e16" : "#f0fdf4")
-                : (dialog.isDark ? "#422006" : "#fefce8")
-            border.width: 0
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: 24
-                anchors.rightMargin: 24
-                spacing: 8
-                Rectangle {
-                    width: 8; height: 8; radius: 4
-                    color: detail.online ? "#22c55e" : "#f59e0b"
-                }
-                UiLabel {
-        textType: UiLabel.Caption
-                    text: detail.online
-                        ? "Online"
-                        : "Offline — device settings read-only. Central column still saves."
-                    color: detail.online
-                        ? (dialog.isDark ? "#86efac" : "#166534")
-                        : (dialog.isDark ? "#fde68a" : "#92400e")
-                    font.family: "Inter"
-                    font.pixelSize: 12
-                }
-                Item { Layout.fillWidth: true }
-            }
-        }
-
-        // ── Two-column body ───────────────────────────────────────────────────
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.leftMargin: 24
-            Layout.rightMargin: 24
-            Layout.topMargin: 20
-            Layout.bottomMargin: 20
-            spacing: 32
-
-            LoggerFormCentralColumn {
-                id: centralCol
-                dialog: dialog
-            }
-
-            Rectangle {
-                Layout.preferredWidth: 1
-                Layout.fillHeight: true
-                color: Colors.border(dialog.isDark)
-            }
-
-            LoggerFormDeviceColumn {
-                id: deviceCol
-                dialog: dialog
-            }
-        }
-    }
-
-    dialogFooter: [
-        UiLabel {
-            textType: UiLabel.Body2
-            Layout.fillWidth: true
-            Layout.minimumWidth: 120
-            visible: dialog.probeStatus.length > 0
-            text: dialog.probeStatus
-            color: dialog.probeStatusColor
-            font.family: "Inter"
-            font.pixelSize: 14
-            wrapMode: Text.WordWrap
-            maximumLineCount: 2
-            elide: Text.ElideRight
-        },
-        DialogButton {
-            text: "Cancel"
-            isDark: dialog.isDark
-            variant: "secondary"
-            onClicked: dialog.close()
-        },
-        DialogButton {
-            text: dialog.mode === "add" ? "Add Logger" : "Save Changes"
-            iconName: dialog.mode === "add" ? "plus" : "save"
-            isDark: dialog.isDark
-            variant: "primary"
-            onClicked: {
-                if (dialog.mode === "add") {
-                    var name = (nameField.value || "").trim()
-                    var host = (hostField.value || "").trim()
-                    if (!name || !host) {
-                        if (typeof window !== "undefined" && window && window.notify)
-                            window.notify("Name and Host are required", "error")
-                        return
-                    }
-                    dialog.close()
-                    dialog.addRequested({
-                        name: name,
-                        host: host,
-                        port: parseInt(portField.value) || 5020,
-                        unitId: parseInt(unitField.value) || 1,
-                        pollIntervalS: parseInt(pollDeviceField.value) || 2,
-                        timeoutS: parseFloat(timeoutField.value) || 2.0,
-                        note: (noteField.value || "").trim(),
-                        apiPort: parseInt(apiPortField.value) || 8080,
-                        apiToken: tokenField.value || "",
-                        apiBaseUrl: (apiBaseUrlField.value || "").trim()
-                    })
-                } else {
-                    var patch = dialog._buildEditPatch()
-                    if (!patch.connection.name || !patch.connection.host) {
-                        if (typeof window !== "undefined" && window && window.notify)
-                            window.notify("Name and Host are required", "error")
-                        return
-                    }
-                    dialog.close()
-                    dialog.saved(patch)
-                }
-            }
-        }
-    ]
-
-    // ── Shared components ─────────────────────────────────────────────────────
     Connections {
         target: dialog.dashboardController
         enabled: dialog.dashboardController !== null
         ignoreUnknownSignals: true
         function onEdgeConfigProbed(ok, payloadJson) {
-            if (dialog.mode !== "add") return
-            dialog.loadFromProbeResult(payloadJson)
-        }
-        function onConfigFetched(id, ok, payloadJson) {
-            // Edit mode: LoggerDetailView owns config fetch and refreshes the form via loadFromDetail.
-            if (dialog.mode === "edit") return
+            if (!dialog.opened) return
             if (!ok) {
                 dialog.configLoaded = false
                 try {
                     var errP = JSON.parse(payloadJson)
                     var errMsg = (errP.errors && errP.errors.length > 0)
                         ? errP.errors[0].message
-                        : (errP.message || "Load failed")
+                        : (errP.message || "Connect failed")
                     dialog.setProbeError(errMsg)
                 } catch (e) {
-                    dialog.setProbeError("Load failed")
+                    dialog.setProbeError("Connect failed")
                 }
                 return
             }
-            try {
-                var snap = dialog.connectionSnapshotFromFields()
-                var parsed = FormLogic.parseConfigFetched(id, payloadJson, snap)
-                dialog.detail = parsed
-                dialog.loadFromDetail(parsed)
-                dialog.configLoaded = true
-                dialog.setProbeSuccess()
-            } catch (e) {
-                console.warn("configFetched in form:", e)
-                dialog.setProbeError("Invalid response")
-            }
+            dialog.loadFromProbeResult(payloadJson)
         }
     }
-
 }

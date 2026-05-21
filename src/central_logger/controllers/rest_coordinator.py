@@ -34,6 +34,7 @@ class RestCoordinator:
         emit_rest_result: Callable[[str, int, object], None],
         on_restart_modbus: Callable[[int], None],
         update_model_poll: Callable[[int, int], None],
+        is_online: Callable[[int], bool | None] | None = None,
     ) -> None:
         self._scheduler = scheduler
         self._sensors = sensors
@@ -41,6 +42,7 @@ class RestCoordinator:
         self._emit_rest_result = emit_rest_result
         self._on_restart_modbus = on_restart_modbus
         self._update_model_poll = update_model_poll
+        self._is_online = is_online
 
         self._rest_cache: dict[int, RestEndpoint] = {}
         self._catalog_fetch_pending: set[int] = set()
@@ -57,9 +59,21 @@ class RestCoordinator:
 
     def pop_logger(self, logger_id: int) -> None:
         self._rest_cache.pop(logger_id, None)
+        self.reset_fetch_state(logger_id)
+
+    def reset_fetch_state(self, logger_id: int) -> None:
+        """Clear pending REST fetch timers after connection/API changes."""
         self._catalog_fetch_pending.discard(logger_id)
         self._readings_fetch_pending.discard(logger_id)
+        self._catalog_fetch_last.pop(logger_id, None)
+        self._readings_fetch_last.pop(logger_id, None)
         self._edge_poll_interval.pop(logger_id, None)
+
+    def _logger_is_online(self, logger_id: int) -> bool:
+        if self._is_online is None:
+            return True
+        state = self._is_online(logger_id)
+        return bool(state) if state is not None else False
 
     def reload_endpoint(self, logger_id: int) -> RestEndpoint | None:
         try:
@@ -101,6 +115,8 @@ class RestCoordinator:
                     errors=[{"field": "api_token", "message": "API token is not configured"}],
                 ),
             )
+            return
+        if kind == "get_readings" and not self._logger_is_online(logger_id):
             return
         loop = self._get_loop()
         if loop is None or not loop.is_running():
@@ -301,6 +317,8 @@ class RestCoordinator:
             pass
 
     def _request_readings_if_needed(self, logger_id: int, *, force: bool = False) -> None:
+        if not self._logger_is_online(logger_id):
+            return
         if not force and not self._catalog_has_digital(logger_id):
             return
         if logger_id in self._readings_fetch_pending:

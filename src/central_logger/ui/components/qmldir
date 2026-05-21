@@ -28,13 +28,11 @@ AppTopBar 1.0 navigation/AppTopBar.qml
 
 # dialogs
 BaseDialog 1.0 dialogs/BaseDialog.qml
-AddLoggerDialog 1.0 dialogs/AddLoggerDialog.qml
 ConfirmDialog 1.0 dialogs/ConfirmDialog.qml
-EditConfigDialog 1.0 dialogs/EditConfigDialog.qml
 LoggerFormDialog 1.0 dialogs/LoggerFormDialog.qml
+LoggerFormBody 1.0 dialogs/LoggerFormBody.qml
+LoggerFormFooter 1.0 dialogs/LoggerFormFooter.qml
 LoggerFormField 1.0 dialogs/LoggerFormField.qml
-LoggerFormCentralColumn 1.0 dialogs/LoggerFormCentralColumn.qml
-LoggerFormDeviceColumn 1.0 dialogs/LoggerFormDeviceColumn.qml
 
 # utils
 FrameResizeHandles 1.0 utils/FrameResizeHandles.qml

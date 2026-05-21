@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from central_logger.services.sensor_catalog import (
+    analog_sensor_ids,
     compute_display_status,
     display_name_for_sensor,
+    is_digital_sensor_type,
     extract_sensors_from_config_raw,
     extract_sensors_from_readings_raw,
     is_top_level_sensor,
@@ -23,6 +25,17 @@ def test_extract_sensors_top_level_and_nested():
         "config": {"sensors": [{"id": 2, "name": "B", "sensor_type": "DI"}]},
     }
     assert len(parse_catalog_from_rest(extract_sensors_from_config_raw(nested_cfg))) == 1
+
+
+def test_analog_sensor_ids_excludes_di_do():
+    catalog = [
+        {"sensor_id": 1, "name": "T", "sensor_type": "AI", "unit": "", "active": True},
+        {"sensor_id": 2, "name": "D", "sensor_type": "DI", "unit": "", "active": True},
+        {"sensor_id": 3, "name": "O", "sensor_type": "DO", "unit": "", "active": True},
+    ]
+    assert is_digital_sensor_type("DI")
+    assert not is_digital_sensor_type("AI")
+    assert analog_sensor_ids(catalog) == {1}
 
 
 def test_is_top_level_sensor():

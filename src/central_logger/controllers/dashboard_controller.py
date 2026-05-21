@@ -85,6 +85,7 @@ class DashboardController(QObject):
             emit_rest_result=self._restResultForUi.emit,
             on_restart_modbus=lambda lid: self._modbus.restart_modbus_for(lid),
             update_model_poll=self._update_model_poll_interval,
+            is_online=self._is_online,
         )
         self._modbus = ModbusBridge(
             self._sensors,
@@ -283,6 +284,7 @@ class DashboardController(QObject):
         if row is None:
             return
         self._rest.set_endpoint(logger_id, build_endpoint_from_row(row))
+        self._rest.reset_fetch_state(logger_id)
         if self._model is not None:
             self._model.update_connection(
                 logger_id,
@@ -317,6 +319,7 @@ class DashboardController(QObject):
         )
         if row is not None:
             self._rest.set_endpoint(logger_id, build_endpoint_from_row(row))
+            self._rest.reset_fetch_state(logger_id)
 
     @Slot(int, result="QString")
     def getLoggerFormData(self, logger_id: int) -> str:
@@ -388,10 +391,14 @@ class DashboardController(QObject):
 
     @Slot(int)
     def fetchReadings(self, logger_id: int) -> None:
+        if not self._is_online(logger_id):
+            return
         self._rest._request_readings_if_needed(logger_id, force=True)
 
     @Slot(int)
     def fetchReadingsIfStale(self, logger_id: int) -> None:
+        if not self._is_online(logger_id):
+            return
         if self._sensors.readings_stale(logger_id):
             return
         self._rest._request_readings_if_needed(logger_id, force=False)
