@@ -3,14 +3,9 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 import "../../"
-import "../../components/common"
 import "../../components/dialogs"
 import "../../logic/LoggerDetailLogic.js" as DetailLogic
 
-/*
- * Logger Detail page — Shadcn style.
- * 3-column layout: Status sidebar | Sensor table | Trending chart.
- */
 Item {
     id: view
 
@@ -18,6 +13,8 @@ Item {
     property int loggerId: -1
     property var loggersModel: null
     property var dashboardController: null
+
+    readonly property bool useRowPanels: width > 950
 
     signal goBack()
 
@@ -174,6 +171,16 @@ Item {
             if (typeof window !== "undefined" && window && window.notify)
                 window.notify(message || "Could not load sensor readings", "warning")
         }
+        function onConfigApplied(id, ok, payloadJson) {
+            if (id !== view.loggerId) return
+            if (ok) {
+                view.detail = DetailLogic.mergeConfigApplied(view.detail, payloadJson)
+                if (view.dashboardController) view.dashboardController.fetchConfig(view.loggerId)
+            } else {
+                var p = DetailLogic.parseJsonSafe(payloadJson, {})
+                console.warn("applyConfig failed:", p.message || p.errors)
+            }
+        }
     }
 
     Connections {
@@ -182,83 +189,106 @@ Item {
         function onDataChanged() { view._rebuildDetail() }
     }
 
-    Flickable {
+    ColumnLayout {
         anchors.fill: parent
-        contentHeight: mainCol.implicitHeight + 32
-        clip: true
+        spacing: 0
+
+        LoggerDetailHeader {
+            Layout.fillWidth: true
+            isDark: view.isDark
+            detail: view.detail
+            loggerId: view.loggerId
+            dashboardController: view.dashboardController
+            onGoBack: view.goBack()
+            onEditClicked: _openEditDialog()
+            onDeleteClicked: deleteDialog.open()
+        }
 
         ColumnLayout {
-            id: mainCol
-            width: parent.width
-            spacing: 0
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.leftMargin: 16
+            Layout.rightMargin: 16
+            Layout.topMargin: 16
+            Layout.bottomMargin: 16
+            spacing: 16
 
-            LoggerDetailHeader {
+            LoggerOverviewGrid {
                 Layout.fillWidth: true
                 isDark: view.isDark
                 detail: view.detail
-                onGoBack: view.goBack()
-                onEditClicked: _openEditDialog()
-                onDeleteClicked: deleteDialog.open()
             }
 
-            // ── Overview + 3-column grid ─────────────────────────────────────
-            ColumnLayout {
+            Item {
+                id: panelsHost
                 Layout.fillWidth: true
-                Layout.leftMargin: 24
-                Layout.rightMargin: 24
-                Layout.topMargin: 24
-                spacing: 24
+                Layout.fillHeight: true
+                Layout.minimumHeight: 280
 
-                LoggerOverviewGrid {
-                    Layout.fillWidth: true
-                    isDark: view.isDark
-                    detail: view.detail
-                }
-
-                GridLayout {
-                    id: contentGrid
-                    Layout.fillWidth: true
-                    columns: view.width > 1100 ? 3 : (view.width > 700 ? 2 : 1)
-                    columnSpacing: 24
-                    rowSpacing: 24
-
-                    // ──── LEFT: Status + Hardware ─────────────────────────────
-                    LoggerStatusSidebar {
-                        Layout.preferredWidth: 7
-                        Layout.fillWidth: true
-                        Layout.minimumHeight: 520
-                        isDark: view.isDark
-                        detail: view.detail
-                        loggerId: view.loggerId
-                        dashboardController: view.dashboardController
-                    }
-
-                    // ──── CENTER: Sensor Monitoring Table ─────────────────────
-                    SensorMonitoringTable {
-                        Layout.preferredWidth: 10
-                        Layout.fillWidth: true
-                        Layout.minimumHeight: 520
-                        isDark: view.isDark
-                        detail: view.detail
-                    }
-
-                    // ──── RIGHT: Trending History Chart ───────────────────────
-                    SensorTrendingChart {
-                        id: trendChart
-                        Layout.preferredWidth: 10
-                        Layout.fillWidth: true
-                        Layout.minimumHeight: 520
-                        isDark: view.isDark
-                        loggerId: view.loggerId
-                        dashboardController: view.dashboardController
-                        sensorList: view.detail.sensorList
-                    }
+                Loader {
+                    anchors.fill: parent
+                    sourceComponent: view.useRowPanels ? rowPanels : columnPanels
                 }
             }
         }
     }
 
-    // ── Dialogs ──────────────────────────────────────────────────────────────
+    Component {
+        id: rowPanels
+        RowLayout {
+            anchors.fill: parent
+            spacing: 16
+
+            SensorMonitoringTable {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredWidth: panelsHost.width * 0.58
+                Layout.minimumWidth: 320
+                isDark: view.isDark
+                detail: view.detail
+            }
+
+            SensorTrendingChart {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredWidth: panelsHost.width * 0.42
+                Layout.minimumWidth: 280
+                isDark: view.isDark
+                loggerId: view.loggerId
+                dashboardController: view.dashboardController
+                sensorList: view.detail.sensorList
+            }
+        }
+    }
+
+    Component {
+        id: columnPanels
+        ColumnLayout {
+            anchors.fill: parent
+            spacing: 16
+
+            SensorMonitoringTable {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredHeight: panelsHost.height * 0.5
+                Layout.minimumHeight: 200
+                isDark: view.isDark
+                detail: view.detail
+            }
+
+            SensorTrendingChart {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredHeight: panelsHost.height * 0.5
+                Layout.minimumHeight: 200
+                isDark: view.isDark
+                loggerId: view.loggerId
+                dashboardController: view.dashboardController
+                sensorList: view.detail.sensorList
+            }
+        }
+    }
+
     EditConfigDialog {
         id: editDialog
         isDark: view.isDark
@@ -312,21 +342,6 @@ Item {
                         )
                     }
                 }
-            }
-        }
-    }
-
-    Connections {
-        target: view.dashboardController
-        ignoreUnknownSignals: true
-        function onConfigApplied(id, ok, payloadJson) {
-            if (id !== view.loggerId) return
-            if (ok) {
-                view.detail = DetailLogic.mergeConfigApplied(view.detail, payloadJson)
-                if (view.dashboardController) view.dashboardController.fetchConfig(view.loggerId)
-            } else {
-                var p = DetailLogic.parseJsonSafe(payloadJson, {})
-                console.warn("applyConfig failed:", p.message || p.errors)
             }
         }
     }

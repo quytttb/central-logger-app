@@ -8,6 +8,7 @@ import logging
 
 from PySide6.QtCore import Property, QObject, Qt, QTimer, Signal, Slot
 from PySide6.QtQml import QmlElement
+from PySide6.QtWidgets import QFileDialog
 
 from central_logger.controllers import chart_queries, logger_ops
 from central_logger.controllers.event_journal import EventJournal
@@ -29,6 +30,9 @@ QML_IMPORT_MAJOR_VERSION = 1
 log = logging.getLogger(__name__)
 
 INGESTION_BUCKET_MINUTES = 5
+
+_IMAGE_FILTER = "Images (*.png *.jpg *.jpeg *.bmp);;All files (*)"
+_REPORT_SAVE_FILTER = "Text files (*.txt);;All files (*)"
 
 
 @QmlElement
@@ -181,6 +185,19 @@ class DashboardController(QObject):
     @Slot(str, result="QString")
     def importProvisionFromQrImage(self, image_path: str) -> str:
         return json.dumps(import_provision_from_qr_image(image_path), ensure_ascii=False)
+
+    @Slot(result="QString")
+    def importProvisionFromQrImageWithDialog(self) -> str:
+        """Native open-file dialog, then decode provisioning QR from the image."""
+        path, _ = QFileDialog.getOpenFileName(
+            None,
+            "Select provisioning QR image",
+            "",
+            _IMAGE_FILTER,
+        )
+        if not path:
+            return json.dumps({"ok": False, "cancelled": True})
+        return self.importProvisionFromQrImage(path)
 
     @Slot(result=bool)
     def qrScanAvailable(self) -> bool:
@@ -379,9 +396,18 @@ class DashboardController(QObject):
             return
         self._rest._request_readings_if_needed(logger_id, force=False)
 
-    @Slot(int, str)
-    def downloadLatestReport(self, logger_id: int, save_path: str) -> None:
-        path = (save_path or "").strip()
+    @Slot(int)
+    def downloadLatestReportWithDialog(self, logger_id: int) -> None:
+        """Native save dialog, then download the latest edge report."""
+        path, _ = QFileDialog.getSaveFileName(
+            None,
+            "Save report file",
+            "report.txt",
+            _REPORT_SAVE_FILTER,
+        )
+        if not path:
+            return
+        path = path.strip()
         if not path:
             self.reportDownloaded.emit(logger_id, False, "Invalid save path")
             return

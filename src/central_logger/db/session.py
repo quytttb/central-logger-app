@@ -39,6 +39,7 @@ def init_db() -> None:
     SQLModel.metadata.create_all(engine)
     _ensure_logger_info_columns(engine)
     _migrate_poll_interval_seconds(engine)
+    _drop_legacy_poll_interval_ms(engine)
     _ensure_sensor_reading_indexes(engine)
     _drop_unused_app_settings_columns(engine)
     _seed_app_settings()
@@ -104,6 +105,18 @@ def _migrate_poll_interval_seconds(engine) -> None:
             conn.execute(
                 text("UPDATE logger_info SET poll_interval_s = 2 WHERE poll_interval_s < 1")
             )
+
+
+def _drop_legacy_poll_interval_ms(engine) -> None:
+    """Drop poll_interval_ms after poll_interval_s exists (partial legacy migration)."""
+    insp = inspect(engine)
+    if "logger_info" not in insp.get_table_names():
+        return
+    existing = {col["name"] for col in insp.get_columns("logger_info")}
+    if "poll_interval_ms" not in existing or "poll_interval_s" not in existing:
+        return
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE logger_info DROP COLUMN poll_interval_ms"))
 
 
 def _ensure_sensor_reading_indexes(engine) -> None:

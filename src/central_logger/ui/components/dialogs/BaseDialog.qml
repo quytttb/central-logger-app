@@ -20,6 +20,15 @@ Popup {
     default property alias dialogBody: contentContainer.data
     property alias dialogFooter: footerContainer.data
     property bool showFooter: true
+    property int footerPreferredHeight: 64
+
+    readonly property int headerHeight: 56
+    readonly property int footerHeight: showFooter ? footerPreferredHeight : 0
+    readonly property int chromeHeight: headerHeight + footerHeight
+    readonly property int maxDialogHeight: parent ? Math.floor(parent.height * 0.9) : 600
+    readonly property int maxBodyHeight: Math.max(120, maxDialogHeight - chromeHeight)
+    readonly property int bodyContentHeight: contentContainer.implicitHeight
+    readonly property int bodyViewportHeight: Math.min(Math.max(bodyContentHeight, 0), maxBodyHeight)
 
     signal cancelled()
 
@@ -32,7 +41,7 @@ Popup {
     x: Math.round((parent.width - width) / 2)
     y: Math.round((parent.height - height) / 2)
     width: Math.min(preferredWidth, parent.width - 32)
-    height: Math.min(mainCol.implicitHeight, parent.height * 0.9)
+    height: chromeHeight + bodyViewportHeight
 
     Overlay.modal: Rectangle { color: Qt.rgba(0, 0, 0, 0.6) }
     onClosed: cancelled()
@@ -91,9 +100,7 @@ Popup {
 
         ColumnLayout {
             id: mainCol
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
+            anchors.fill: parent
             spacing: 0
 
             // ── Header ───────────────────────────────────────────────────────
@@ -139,10 +146,11 @@ Popup {
             // ── Body (Scrollable) ────────────────────────────────────────────
             Flickable {
                 Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.preferredHeight: contentContainer.implicitHeight
+                Layout.preferredHeight: root.bodyViewportHeight
+                Layout.minimumHeight: 0
                 contentHeight: contentContainer.implicitHeight
                 clip: true
+                boundsBehavior: Flickable.StopAtBounds
 
                 ColumnLayout {
                     id: contentContainer
@@ -155,7 +163,7 @@ Popup {
             Rectangle {
                 visible: root.showFooter
                 Layout.fillWidth: true
-                Layout.preferredHeight: visible ? 64 : 0
+                Layout.preferredHeight: root.footerHeight
                 color: "transparent"
                 Rectangle {
                     anchors.top: parent.top

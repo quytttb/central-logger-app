@@ -123,7 +123,7 @@ ColumnLayout {
                     cursorShape: root.dialog.qrScanEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
                     onClicked: {
                         if (root.dialog.qrScanEnabled)
-                            root.dialog.openQrFileDialog()
+                            root.dialog.importQrFromFile()
                         else if (typeof window !== "undefined" && window && window.notify)
                             window.notify("QR scan unavailable (see README — ZBar DLL on Windows)", "warning")
                     }
@@ -176,16 +176,6 @@ ColumnLayout {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: root.dialog.connectAndLoadConfig()
             }
-        }
-        UiLabel {
-        textType: UiLabel.Caption
-            Layout.fillWidth: true
-            visible: root.dialog.probeStatus.length > 0
-            text: root.dialog.probeStatus
-            color: root.dialog.probeStatusColor
-            font.family: "Inter"
-            font.pixelSize: 11
-            wrapMode: Text.WordWrap
         }
     }
 }

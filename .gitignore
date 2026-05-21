@@ -28,6 +28,7 @@ uv.lock.local
 htmlcov/
 
 # IDE
+.cursor/
 .vscode/
 .idea/
 *.swp

@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Dialogs
 import QtQuick.Layouts
 
 import "../.."
@@ -31,6 +30,7 @@ BaseDialog {
     signal saved(var patch)
 
     title: mode === "add" ? "Add Edge Logger" : "Edit Logger"
+    footerPreferredHeight: probeStatus.length > 0 ? 80 : 64
 
     // Device fields: sau Connect & Load (Add) hoặc Edit khi online.
     readonly property bool deviceEditable: configLoaded
@@ -53,8 +53,27 @@ BaseDialog {
     readonly property alias pollDeviceField: deviceCol.pollDeviceField
     readonly property alias modbusTcpEnabledCheck: deviceCol.modbusTcpEnabledCheck
 
-    function openQrFileDialog() {
-        qrFileDialog.open()
+    function importQrFromFile() {
+        if (!dialog.dashboardController) {
+            if (typeof window !== "undefined" && window && window.notify)
+                window.notify("Dashboard controller not available", "error")
+            return
+        }
+        var raw = dialog.dashboardController.importProvisionFromQrImageWithDialog()
+        try {
+            var res = JSON.parse(raw || "{}")
+            if (res.cancelled)
+                return
+            if (res.ok && res.fields)
+                dialog.applyProvisionFields(res.fields)
+            else if (typeof window !== "undefined" && window && window.notify)
+                window.notify(res.error || "Invalid provisioning QR", "error")
+            else
+                console.warn("QR import:", res.error)
+        } catch (e) {
+            if (typeof window !== "undefined" && window && window.notify)
+                window.notify("Invalid QR response", "error")
+        }
     }
 
     function humanizeProbeError(raw) {
@@ -297,7 +316,19 @@ BaseDialog {
     }
 
     dialogFooter: [
-        Item { Layout.fillWidth: true },
+        UiLabel {
+            textType: UiLabel.Body2
+            Layout.fillWidth: true
+            Layout.minimumWidth: 120
+            visible: dialog.probeStatus.length > 0
+            text: dialog.probeStatus
+            color: dialog.probeStatusColor
+            font.family: "Inter"
+            font.pixelSize: 14
+            wrapMode: Text.WordWrap
+            maximumLineCount: 2
+            elide: Text.ElideRight
+        },
         DialogButton {
             text: "Cancel"
             isDark: dialog.isDark
@@ -380,35 +411,6 @@ BaseDialog {
             } catch (e) {
                 console.warn("configFetched in form:", e)
                 dialog.setProbeError("Invalid response")
-            }
-        }
-    }
-
-    FileDialog {
-        id: qrFileDialog
-        title: "Select provisioning QR image"
-        nameFilters: ["Images (*.png *.jpg *.jpeg *.bmp)"]
-        onAccepted: {
-            if (!dialog.dashboardController) {
-                if (typeof window !== "undefined" && window && window.notify)
-                    window.notify("Dashboard controller not available", "error")
-                return
-            }
-            var path = selectedFile.toString()
-            if (path.startsWith("file://"))
-                path = path.substring(7)
-            var raw = dialog.dashboardController.importProvisionFromQrImage(path)
-            try {
-                var res = JSON.parse(raw || "{}")
-                if (res.ok && res.fields)
-                    dialog.applyProvisionFields(res.fields)
-                else if (typeof window !== "undefined" && window && window.notify)
-                    window.notify(res.error || "Invalid provisioning QR", "error")
-                else
-                    console.warn("QR import:", res.error)
-            } catch (e) {
-                if (typeof window !== "undefined" && window && window.notify)
-                    window.notify("Invalid QR response", "error")
             }
         }
     }

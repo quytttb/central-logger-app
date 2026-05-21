@@ -11,6 +11,15 @@ Rectangle {
 
     property bool isDark: true
     property var detail: ({})
+    property var dashboardController: null
+    property int loggerId: -1
+
+    readonly property bool canDownloadReport: detail.online
+        && dashboardController !== null
+        && loggerId >= 0
+    readonly property string trimmedNote: (detail.note || "").trim()
+    readonly property int titleNameMaxWidth: Math.max(160, root.width - 300)
+
     signal goBack()
     signal editClicked()
     signal deleteClicked()
@@ -60,24 +69,89 @@ Rectangle {
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 2
-            UiLabel {
-        textType: UiLabel.Headline5
-                text: detail.loggerName
-                color: Colors.textPrimary(root.isDark)
-                font.family: "Inter"
-                font.pixelSize: 24
-                font.weight: Font.Bold
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 6
+                UiLabel {
+                    textType: UiLabel.Headline5
+                    text: detail.loggerName || "—"
+                    color: Colors.textPrimary(root.isDark)
+                    font.family: "Inter"
+                    font.pixelSize: 24
+                    font.weight: Font.Bold
+                    elide: Text.ElideRight
+                    Layout.fillWidth: root.trimmedNote.length === 0
+                    Layout.maximumWidth: root.trimmedNote.length > 0 ? root.titleNameMaxWidth : -1
+                    maximumLineCount: 1
+                }
+                UiLabel {
+                    visible: root.trimmedNote.length > 0
+                    text: root.trimmedNote.length > 0 ? ("(" + root.trimmedNote + ")") : ""
+                    color: Colors.textSecondary(root.isDark)
+                    font.family: "Inter"
+                    font.pixelSize: 16
+                    font.weight: Font.Normal
+                    elide: Text.ElideRight
+                    Layout.fillWidth: true
+                    maximumLineCount: 1
+                }
             }
+
             UiLabel {
-        textType: UiLabel.Body2
-                text: detail.host + ":" + detail.port
+                textType: UiLabel.Caption
+                Layout.fillWidth: true
+                text: {
+                    var h = detail.host || "—"
+                    var modbus = detail.port !== undefined ? detail.port : 5020
+                    var rest = detail.apiPort !== undefined ? detail.apiPort : 8080
+                    var line = h + " · MB:" + modbus + " · REST:" + rest
+                    var sc = detail.sensorCount !== undefined ? detail.sensorCount : 0
+                    if (sc > 0)
+                        line += " · " + sc + " sensors"
+                    return line
+                }
                 color: Colors.textSecondary(root.isDark)
                 font.family: "Inter"
-                font.pixelSize: 14
+                font.pixelSize: 12
+                elide: Text.ElideRight
             }
         }
 
-        Item { Layout.fillWidth: true }
+        Rectangle {
+            width: 36
+            height: 36
+            radius: 6
+            opacity: root.canDownloadReport ? 1.0 : 0.45
+            color: "transparent"
+            HoverHighlight {
+                anchors.fill: parent
+                cornerRadius: 6
+                hovered: dlMouse.containsMouse && root.canDownloadReport
+                isDark: root.isDark
+            }
+            UiIcon {
+                anchors.centerIn: parent
+                name: "download"
+                size: 20
+                iconColor: Colors.textSecondary(root.isDark)
+            }
+            MouseArea {
+                id: dlMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: root.canDownloadReport ? Qt.PointingHandCursor : Qt.ArrowCursor
+                onClicked: {
+                    if (!root.canDownloadReport || !root.dashboardController || root.loggerId < 0)
+                        return
+                    root.dashboardController.downloadLatestReportWithDialog(root.loggerId)
+                }
+            }
+            ToolTip.visible: dlMouse.containsMouse
+            ToolTip.text: root.canDownloadReport
+                ? "Download Report"
+                : "Logger must be online with API token configured"
+        }
 
         Rectangle {
             width: 36
