@@ -269,7 +269,7 @@ Hoặc một lệnh: `.\scripts\build.ps1 msi patch -DeployDir deploy`
 
 Đã bump tay, chỉ đóng MSI: `.\scripts\build_msi.ps1 -DeployDir deploy` (tùy chọn `-Version`).
 
-**MSI build:** `packaging/windows/Package.wxs` harvest `deploy\` qua WiX 7 `<Files>` + `BindPath`. `deploy\` phải đầy đủ (chạy `build_deploy_windows.ps1` trước). CI: workflow **Dev Build** (job `build-msi` trên Windows) hoặc **Build Release** khi push tag.
+**MSI build:** WiX **Toolset 7** (`WixToolset.Sdk/7.0.0`); source `.wxs` dùng namespace **`http://wixtoolset.org/schemas/v4/wxs`** (schema ngôn ngữ v4, không phải “schema v7”). `packaging/windows/Package.wxs` harvest `deploy\` qua `<Files>` + `BindPath`. `deploy\` phải đầy đủ (chạy `build_deploy_windows.ps1` trước). CI: workflow **Dev Build** (job `build-msi` trên Windows) hoặc **Build Release** khi push tag.
 
 **Cài thử:** `msiexec /i "dist\CentralLogger-0.1.0-win64.msi"`
 

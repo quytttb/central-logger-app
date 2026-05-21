@@ -10,6 +10,6 @@
     <DefineConstants>ProductVersion=$(ProductVersion)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <BindPath Include="$(DeployDir)" Name="DeployDir" />
+    <BindPath Include="$(DeployDir)" BindName="DeployDir" />
   </ItemGroup>
 </Project>

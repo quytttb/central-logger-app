@@ -20,6 +20,7 @@
     UpgradeCode="A1B2C3D4-E5F6-7890-ABCD-EF1234567890"
     Scope="perMachine">
     <MajorUpgrade DowngradeErrorMessage="A newer version of Central Logger is already installed." />
+    <MediaTemplate EmbedCab="yes" />
 
     <Feature Id="MainFeature" Title="Central Logger" Level="1">
       <ComponentGroupRef Id="DeployFiles" />
