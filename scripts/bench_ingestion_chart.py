@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Benchmark build_ingestion_chart_24h; optional --seed N rows into temp DB."""
+
 from __future__ import annotations
 
 import argparse
@@ -56,13 +57,16 @@ def main() -> int:
         db_session._engine = None  # noqa: SLF001
 
     from central_logger.controllers import chart_queries
+
     times_ms: list[float] = []
     for _ in range(args.runs):
         t0 = time.perf_counter()
         chart_queries.build_ingestion_chart_24h()
         times_ms.append((time.perf_counter() - t0) * 1000)
     avg = sum(times_ms) / len(times_ms)
-    print(f"build_ingestion_chart_24h: avg={avg:.1f} ms  min={min(times_ms):.1f}  max={max(times_ms):.1f}")
+    print(
+        f"build_ingestion_chart_24h: avg={avg:.1f} ms  min={min(times_ms):.1f}  max={max(times_ms):.1f}"
+    )
     if args.seed:
         print(f"  (DB ~{args.seed} readings in {db_path})")
     return 0

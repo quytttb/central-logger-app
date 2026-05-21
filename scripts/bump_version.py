@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Bump project.version in pyproject.toml (SemVer MAJOR.MINOR.PATCH)."""
+
 from __future__ import annotations
 
 import argparse

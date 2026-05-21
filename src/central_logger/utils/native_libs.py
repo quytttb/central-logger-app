@@ -76,9 +76,7 @@ def qr_scan_unavailable_reason() -> str:
     if sys.platform == "win32":
         dll_dir = zbar_windows_dir()
         if not (dll_dir / "libzbar-64.dll").is_file():
-            return (
-                "QR scan needs ZBar DLLs in " f"{dll_dir} — see resources/native/windows/README.md"
-            )
+            return f"QR scan needs ZBar DLLs in {dll_dir} — see resources/native/windows/README.md"
     try:
         import pyzbar.pyzbar  # noqa: F401
         from PIL import Image  # noqa: F401

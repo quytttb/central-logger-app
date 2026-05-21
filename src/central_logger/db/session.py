@@ -97,10 +97,12 @@ def _migrate_poll_interval_seconds(engine) -> None:
             text("ALTER TABLE logger_info ADD COLUMN poll_interval_s INTEGER NOT NULL DEFAULT 2")
         )
         if "poll_interval_ms" in existing:
-            conn.execute(text("""
+            conn.execute(
+                text("""
                     UPDATE logger_info
                     SET poll_interval_s = MAX(1, poll_interval_ms / 1000)
-                    """))
+                    """)
+            )
         else:
             conn.execute(
                 text("UPDATE logger_info SET poll_interval_s = 2 WHERE poll_interval_s < 1")

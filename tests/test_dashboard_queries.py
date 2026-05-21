@@ -106,9 +106,7 @@ def test_poll_trending_analog_only():
         {"label": "10:00:00", "values": {1: 20.0, 2: 1.0}},
         {"label": "10:00:05", "values": {1: 21.0, 2: 0.0}},
     ]
-    _labels, series = chart_queries.build_poll_trending_series(
-        1, points, sensor_catalog=catalog
-    )
+    _labels, series = chart_queries.build_poll_trending_series(1, points, sensor_catalog=catalog)
     assert len(series) == 1
     assert series[0]["sensorId"] == 1
 
@@ -125,9 +123,7 @@ def test_poll_trending_no_top_four_cap():
         for i in range(1, 8)
     ]
     points = [{"label": "t", "values": {i: float(i) for i in range(1, 8)}}]
-    _labels, series = chart_queries.build_poll_trending_series(
-        1, points, sensor_catalog=catalog
-    )
+    _labels, series = chart_queries.build_poll_trending_series(1, points, sensor_catalog=catalog)
     assert len(series) == 7
     assert [s["sensorId"] for s in series] == list(range(1, 8))
 
