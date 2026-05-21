@@ -43,6 +43,14 @@
           Target="[INSTALLFOLDER]CentralLogger.exe"
           WorkingDirectory="INSTALLFOLDER" />
         <RemoveFolder Directory="ApplicationProgramsFolder" On="uninstall" />
+        <!-- ICE38/ICE43: Start Menu is per-user; component KeyPath must be HKCU registry. -->
+        <RegistryValue
+          Root="HKCU"
+          Key="Software\Central Logger"
+          Name="StartMenuShortcut"
+          Type="integer"
+          Value="1"
+          KeyPath="yes" />
       </Component>
     </DirectoryRef>
   </Fragment>
