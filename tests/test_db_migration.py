@@ -20,8 +20,7 @@ def test_add_missing_columns_on_legacy_table(tmp_path):
     engine = create_engine(f"sqlite:///{db_path}")
     # Tạo bảng cũ (v0) thiếu các column REST.
     with engine.begin() as conn:
-        conn.execute(
-            text("""
+        conn.execute(text("""
                 CREATE TABLE logger_info (
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -34,8 +33,7 @@ def test_add_missing_columns_on_legacy_table(tmp_path):
                     note TEXT,
                     created_at TEXT
                 )
-                """)
-        )
+                """))
 
     _ensure_logger_info_columns(engine)
 
@@ -49,8 +47,7 @@ def test_migrate_poll_interval_seconds(tmp_path):
     db_path = tmp_path / "legacy_poll.db"
     engine = create_engine(f"sqlite:///{db_path}")
     with engine.begin() as conn:
-        conn.execute(
-            text("""
+        conn.execute(text("""
                 CREATE TABLE logger_info (
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -61,8 +58,7 @@ def test_migrate_poll_interval_seconds(tmp_path):
                     timeout_s REAL NOT NULL DEFAULT 2.0,
                     enabled BOOLEAN NOT NULL DEFAULT 1
                 )
-                """)
-        )
+                """))
         conn.execute(text("INSERT INTO logger_info (id, name, host) VALUES (1, 'L', '127.0.0.1')"))
     _migrate_poll_interval_seconds(engine)
     insp = inspect(engine)
@@ -74,8 +70,7 @@ def test_migrate_poll_interval_seconds(tmp_path):
 
 
 def _create_legacy_logger_table(conn) -> None:
-    conn.execute(
-        text("""
+    conn.execute(text("""
             CREATE TABLE logger_info (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -93,8 +88,7 @@ def _create_legacy_logger_table(conn) -> None:
                 api_token VARCHAR(256),
                 last_revision INTEGER NOT NULL DEFAULT -1
             )
-            """)
-    )
+            """))
 
 
 def test_drop_legacy_poll_interval_ms_after_partial_migration(tmp_path):
@@ -116,8 +110,7 @@ def test_init_db_legacy_schema_allows_insert_logger(tmp_path, monkeypatch):
     url = f"sqlite:///{db_path}"
     engine = create_engine(url)
     with engine.begin() as conn:
-        conn.execute(
-            text("""
+        conn.execute(text("""
                 CREATE TABLE logger_info (
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -130,8 +123,7 @@ def test_init_db_legacy_schema_allows_insert_logger(tmp_path, monkeypatch):
                     note TEXT,
                     created_at TEXT
                 )
-                """)
-        )
+                """))
     monkeypatch.setenv("CENTRAL_LOGGER_DB_URL", url)
     db_session._engine = None  # noqa: SLF001
     init_db()
